@@ -26,4 +26,7 @@ public class AdminRegistrationRequest {
     
     @NotBlank(message = "Authorization code is required")
     private String authorizationCode;
+    
+    private String firstName;
+    private String lastName;
 }

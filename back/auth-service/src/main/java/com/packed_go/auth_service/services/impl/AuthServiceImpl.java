@@ -356,7 +356,14 @@ public java.util.Map<String, Object> verifyEmail(String token) {
         log.debug("Registering new admin with username: {}", request.getUsername());
         
         // Validar código de autorización
-        if (!"PACKEDGO-ADMIN-2025".equals(request.getAuthorizationCode())) {
+        String authCode = request.getAuthorizationCode();
+        String role = "ADMIN";
+        
+        // Si usa el código de SUPER_ADMIN, crear SUPER_ADMIN
+        if ("PACKEDGO-SUPERADMIN-2025".equals(authCode)) {
+            role = "SUPER_ADMIN";
+            log.info("🔑 SUPER_ADMIN authorization code detected");
+        } else if (!"PACKEDGO-ADMIN-2025".equals(authCode)) {
             throw new BadRequestException("Invalid authorization code");
         }
         
@@ -375,11 +382,11 @@ public java.util.Map<String, Object> verifyEmail(String token) {
                 .username(request.getUsername())
                 .email(request.getEmail())
                 .passwordHash(passwordEncoder.encode(request.getPassword()))
-                .role("ADMIN")
+                .role(role)
                 .loginType("EMAIL")
                 .isActive(true)
-                .isEmailVerified(false) // ❌ Requiere verificación de email
-                .isDocumentVerified(false)
+                .isEmailVerified(true) // ✅ En desarrollo, auto-verificar
+                .isDocumentVerified(true)
                 .failedLoginAttempts(0)
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
