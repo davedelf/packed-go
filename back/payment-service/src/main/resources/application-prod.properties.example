@@ -1,0 +1,56 @@
+# Production Environment Configuration
+spring.application.name=payment-service
+
+# Server Configuration
+server.port=8082
+server.servlet.context-path=/
+server.compression.enabled=true
+server.compression.mime-types=application/json,application/xml,text/html,text/xml,text/plain
+
+# Database Configuration - PostgreSQL
+spring.datasource.url=${DB_URL}
+spring.datasource.username=${DB_USERNAME}
+spring.datasource.password=${DB_PASSWORD}
+spring.datasource.driver-class-name=org.postgresql.Driver
+
+# Connection Pool Configuration
+spring.datasource.hikari.maximum-pool-size=10
+spring.datasource.hikari.minimum-idle=5
+spring.datasource.hikari.connection-timeout=30000
+spring.datasource.hikari.idle-timeout=600000
+spring.datasource.hikari.max-lifetime=1800000
+
+# JPA/Hibernate Configuration
+spring.jpa.hibernate.ddl-auto=validate
+spring.jpa.show-sql=false
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
+spring.jpa.properties.hibernate.format_sql=false
+spring.jpa.properties.hibernate.jdbc.lob.non_contextual_creation=true
+spring.jpa.properties.hibernate.jdbc.batch_size=20
+spring.jpa.properties.hibernate.order_inserts=true
+spring.jpa.properties.hibernate.order_updates=true
+
+# Logging Configuration - Production level
+logging.level.root=WARN
+logging.level.com.packedgo.payment_service=INFO
+logging.level.org.springframework.web=WARN
+logging.level.org.hibernate.SQL=WARN
+logging.pattern.console=%d{yyyy-MM-dd HH:mm:ss} - %msg%n
+logging.file.name=/var/log/payment-service/application.log
+logging.file.max-size=10MB
+logging.file.max-history=30
+
+# Actuator Configuration
+management.endpoints.web.exposure.include=health,info,metrics
+management.endpoint.health.show-details=when-authorized
+management.health.db.enabled=true
+management.metrics.export.prometheus.enabled=true
+
+# MercadoPago Webhook Configuration
+mercadopago.webhook.url=${WEBHOOK_URL}
+
+# CORS Configuration
+cors.allowed-origins=${CORS_ORIGINS}
+
+# Security
+spring.security.filter.order=5

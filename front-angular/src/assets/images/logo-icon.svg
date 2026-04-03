@@ -1,0 +1,18 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Simplified box icon -->
+  <path d="M100 20 L180 60 L180 140 L100 180 L20 140 L20 60 Z" fill="#E8F4F8" stroke="#1E3A5F" stroke-width="6"/>
+  <path d="M100 20 L20 60 L100 100" fill="#D0E8F0" stroke="#1E3A5F" stroke-width="6"/>
+  <path d="M100 20 L180 60 L100 100" fill="#F0F8FC" stroke="#1E3A5F" stroke-width="6"/>
+  <line x1="100" y1="100" x2="100" y2="180" stroke="#1E3A5F" stroke-width="6"/>
+  
+  <!-- QR Code corners -->
+  <rect x="50" y="90" width="15" height="15" fill="#4CAF50" rx="2"/>
+  <rect x="75" y="90" width="15" height="15" fill="#4CAF50" rx="2"/>
+  <rect x="50" y="115" width="15" height="15" fill="#4CAF50" rx="2"/>
+  
+  <!-- Go leaf -->
+  <g transform="translate(120, 110)">
+    <path d="M0 0 L6 -6 L9 -3 L6 0 L9 3 L6 6 Z" fill="#4CAF50"/>
+    <path d="M11 -1 L15 -5 L18 -2 L15 1 L18 4 L15 7 L11 3 Z" fill="#4CAF50"/>
+  </g>
+</svg>

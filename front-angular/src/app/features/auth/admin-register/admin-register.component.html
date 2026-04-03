@@ -1,0 +1,147 @@
+<div class="admin-alert">
+  <i class="bi bi-shield-lock-fill"></i> Registro de Administrador
+</div>
+
+<div class="register-container">
+  <!-- Back to Landing Button -->
+  <button type="button" class="btn-back-landing" (click)="goToLanding()">
+    <i class="bi bi-arrow-left"></i> Volver al inicio
+  </button>
+
+  <div class="text-center mb-4">
+    <div class="logo-container">
+      <i class="bi bi-person-plus-fill"></i>
+    </div>
+    <h2 class="title">Solicitar Acceso</h2>
+    <p class="subtitle">Registro exclusivo para personal autorizado</p>
+  </div>
+
+  <!-- Success Alert -->
+  <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show" role="alert">
+    <i class="bi bi-check-circle-fill me-2"></i>
+    {{ successMessage }}
+  </div>
+
+  <!-- Error Alert -->
+  <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show" role="alert">
+    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+    {{ errorMessage }}
+    <button type="button" class="btn-close" (click)="errorMessage = ''" aria-label="Close"></button>
+  </div>
+
+  <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+    <!-- Username -->
+    <div class="mb-3">
+      <label for="username" class="form-label">
+        <i class="bi bi-person-fill"></i> Nombre de Usuario
+      </label>
+      <input 
+        type="text" 
+        class="form-control" 
+        id="username" 
+        formControlName="username"
+        placeholder="admin123"
+        [class.is-invalid]="username?.invalid && username?.touched"
+      >
+      <div *ngIf="username?.invalid && username?.touched" class="invalid-feedback">
+        <div *ngIf="username?.errors?.['required']">El nombre de usuario es requerido</div>
+        <div *ngIf="username?.errors?.['minlength']">Debe tener al menos 3 caracteres</div>
+        <div *ngIf="username?.errors?.['maxlength']">No debe exceder 50 caracteres</div>
+      </div>
+    </div>
+
+    <!-- Email -->
+    <div class="mb-3">
+      <label for="email" class="form-label">
+        <i class="bi bi-envelope-fill"></i> Correo Electrónico
+      </label>
+      <input 
+        type="email" 
+        class="form-control" 
+        id="email" 
+        formControlName="email"
+        placeholder="admin@packedgo.com"
+        [class.is-invalid]="email?.invalid && email?.touched"
+      >
+      <div *ngIf="email?.invalid && email?.touched" class="invalid-feedback">
+        <div *ngIf="email?.errors?.['required']">El email es requerido</div>
+        <div *ngIf="email?.errors?.['email']">Ingresa un email válido</div>
+      </div>
+    </div>
+
+    <!-- Password -->
+    <div class="mb-3">
+      <label for="password" class="form-label">
+        <i class="bi bi-lock-fill"></i> Contraseña
+      </label>
+      <div class="password-input-container">
+        <input 
+          [type]="showPassword ? 'text' : 'password'" 
+          class="form-control" 
+          id="password" 
+          formControlName="password"
+          placeholder="••••••••"
+          [class.is-invalid]="password?.invalid && password?.touched"
+        >
+        <button 
+          type="button" 
+          class="password-toggle" 
+          (click)="togglePasswordVisibility()"
+        >
+          <i [class]="showPassword ? 'bi bi-eye-slash-fill' : 'bi bi-eye-fill'"></i>
+        </button>
+      </div>
+      <div *ngIf="password?.invalid && password?.touched" class="invalid-feedback d-block">
+        <div *ngIf="password?.errors?.['required']">La contraseña es requerida</div>
+        <div *ngIf="password?.errors?.['minlength']">La contraseña debe tener al menos 8 caracteres</div>
+      </div>
+    </div>
+
+    <!-- Authorization Code -->
+    <div class="mb-3">
+      <label for="authorizationCode" class="form-label">
+        <i class="bi bi-key-fill"></i> Código de Autorización
+      </label>
+      <input 
+        type="text" 
+        class="form-control" 
+        id="authorizationCode" 
+        formControlName="authorizationCode"
+        placeholder="Código proporcionado por el administrador"
+        [class.is-invalid]="authorizationCode?.invalid && authorizationCode?.touched"
+      >
+      <div *ngIf="authorizationCode?.invalid && authorizationCode?.touched" class="invalid-feedback">
+        <div *ngIf="authorizationCode?.errors?.['required']">El código de autorización es requerido</div>
+      </div>
+      <small class="form-text text-muted">
+        <i class="bi bi-info-circle"></i> Solicita este código al administrador principal
+      </small>
+    </div>
+
+    <!-- Submit Button -->
+    <button 
+      type="submit" 
+      class="btn btn-admin w-100" 
+      [disabled]="isLoading"
+    >
+      <span *ngIf="!isLoading">
+        <i class="bi bi-person-plus"></i> Solicitar Registro
+      </span>
+      <span *ngIf="isLoading">
+        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+        Registrando...
+      </span>
+    </button>
+  </form>
+
+  <div class="divider">
+    <span>O</span>
+  </div>
+
+  <div class="text-center">
+    <p class="login-text">
+      ¿Ya tienes cuenta? 
+      <a routerLink="/admin/login" class="login-link">Iniciar sesión</a>
+    </p>
+  </div>
+</div>

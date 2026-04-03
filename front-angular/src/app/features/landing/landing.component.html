@@ -1,0 +1,205 @@
+<div class="landing-container">
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="container">
+      <div class="navbar-brand">
+        <img src="images/logo-icon.svg" alt="PackedGo" class="logo-icon" />
+        <span class="logo">PackedGo</span>
+      </div>
+      <div class="navbar-menu">
+        <a class="nav-link" (click)="scrollToSection('features')"
+          >Características</a
+        >
+        <a class="nav-link" (click)="scrollToSection('faq')">FAQ</a>
+        <button class="btn-employee" (click)="goToEmployeeLogin()">
+          👤 Empleados
+        </button>
+        <button class="btn-register" (click)="goToCustomerRegister()">
+          Registrarse
+        </button>
+        <button class="btn-login" (click)="goToCustomerLogin()">
+          Iniciar Sesión
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="container">
+      <div class="hero-content">
+        <h1 class="hero-title">
+          Descubre y Obten<br />
+          <span class="highlight">los Mejores Eventos</span>
+        </h1>
+        <p class="hero-description">
+          Conciertos • Deportes • Arte • Cultura • Y mucho más
+        </p>
+        <div class="hero-buttons">
+          <button class="btn-primary-large" (click)="goToExploreEvents()">
+            Explorar Eventos
+          </button>
+          <button class="btn-secondary-large" (click)="goToAdminLogin()">
+            Soy Organizador
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section id="features" class="features-section">
+    <div class="container">
+      <h2 class="section-title">¿Por qué elegir PackedGo?</h2>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">🎫</div>
+          <h3>Entradas Digitales</h3>
+          <p>
+            Código QR único para cada entrada. Sin papeles, sin complicaciones.
+          </p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">⚡</div>
+          <h3>Compra Rápida</h3>
+          <p>Proceso de compra simple y seguro. En minutos tenés tu entrada.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🍹</div>
+          <h3>Consumiciones</h3>
+          <p>Algunas entradas incluyen consumiciones dentro del evento.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📱</div>
+          <h3>Todo en tu Celular</h3>
+          <p>Tus entradas siempre disponibles desde cualquier dispositivo.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🔒</div>
+          <h3>Pago Seguro</h3>
+          <p>Transacciones protegidas con las mejores pasarelas de pago.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📧</div>
+          <h3>Confirmación Instantánea</h3>
+          <p>Recibí tu entrada por email al instante de confirmar el pago.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works Section -->
+  <section class="how-it-works-section">
+    <div class="container">
+      <h2 class="section-title">¿Cómo funciona?</h2>
+      <div class="steps-container">
+        <div class="step">
+          <div class="step-number">1</div>
+          <h3>Registrate</h3>
+          <p>Creá tu cuenta gratis en segundos</p>
+        </div>
+        <div class="step-arrow">→</div>
+        <div class="step">
+          <div class="step-number">2</div>
+          <h3>Elegí tu Evento</h3>
+          <p>Explorá eventos disponibles</p>
+        </div>
+        <div class="step-arrow">→</div>
+        <div class="step">
+          <div class="step-number">3</div>
+          <h3>Comprá</h3>
+          <p>Pago seguro y rápido</p>
+        </div>
+        <div class="step-arrow">→</div>
+        <div class="step">
+          <div class="step-number">4</div>
+          <h3>¡Disfrutá!</h3>
+          <p>Mostrá tu QR en la entrada</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ Section -->
+  <section id="faq" class="faq-section">
+    <div class="container">
+      <h2 class="section-title">Preguntas Frecuentes</h2>
+      <div class="faq-container">
+        <div
+          class="faq-item"
+          *ngFor="let faq of faqs; let i = index"
+          [class.open]="faq.open"
+        >
+          <div class="faq-question" (click)="toggleFaq(i)">
+            <h3>{{ faq.question }}</h3>
+            <span class="faq-toggle">{{ faq.open ? "−" : "+" }}</span>
+          </div>
+          <div class="faq-answer" *ngIf="faq.open">
+            <p>{{ faq.answer }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="cta-section">
+    <div class="container">
+      <h2>¿Listo para tu próximo evento?</h2>
+      <p>Unite a miles de usuarios que ya confían en PackedGo</p>
+      <button class="btn-cta" (click)="goToCustomerRegister()">
+        Comenzar Ahora
+      </button>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-column">
+          <h4>Para Usuarios</h4>
+          <a (click)="goToCustomerLogin()">Iniciar Sesión</a>
+          <a (click)="goToCustomerRegister()">Registrarse</a>
+          <a (click)="scrollToSection('faq')">Preguntas Frecuentes</a>
+          <a (click)="goToExploreEvents()">Ver Eventos</a>
+        </div>
+
+        <div class="footer-column">
+          <h4>Para Organizadores</h4>
+          <a (click)="goToAdminLogin()">Login Admin</a>
+          <a (click)="goToEmployeeLogin()">Login Empleados</a>
+          <a (click)="goToWinEvents()">Crear Evento</a>
+          <a (click)="goToAnalytics()">Reportes</a>
+        </div>
+
+        <div class="footer-column">
+          <h4>Legal</h4>
+          <a (click)="goToTerms()">Términos y Condiciones</a>
+          <a (click)="goToPrivacy()">Política de Privacidad</a>
+          <a (click)="goToWinEvents()">Política de Cookies</a>
+        </div>
+
+        <div class="footer-column">
+          <h4>Contacto</h4>
+          <p>📧 packedgo.events&#64;gmail.com</p>
+          <p>📞 +54 351 1234-567</p>
+          <p>
+            📍 Maestro M. Lopez esq, Cruz Roja Argentina S/N<br />Córdoba,
+            Argentina
+          </p>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p>&copy; 2025 PackedGo. Todos los derechos reservados.</p>
+        <p class="footer-legal">
+          PackedGo es una plataforma tecnológica de gestión y venta de entradas
+          para eventos. Los organizadores son los únicos responsables de la
+          organización y realización de sus eventos. Tratamos datos personales
+          conforme a la Ley N° 25.326.
+        </p>
+      </div>
+    </div>
+  </footer>
+</div>

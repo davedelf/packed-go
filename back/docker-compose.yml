@@ -1,0 +1,253 @@
+version: '3.8'
+
+services:
+  # API Gateway
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - JWT_SECRET=mySecretKey123456789PackedGoAuth2025VerySecureKey
+    depends_on:
+      - auth-service
+      - users-service
+      - event-service
+      - order-service
+      - payment-service
+      - analytics-service
+    networks:
+      - packedgo-network
+
+  # Auth Service
+  auth-service:
+    build:
+      context: ./auth-service
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8081"
+    env_file:
+      - ./auth-service/.env
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
+    depends_on:
+      auth-db:
+        condition: service_healthy
+      users-service:
+        condition: service_started
+    networks:
+      - packedgo-network
+
+  # Auth Database
+  auth-db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: auth_db
+      POSTGRES_USER: auth_user
+      POSTGRES_PASSWORD: auth_password
+    ports:
+      - "5433:5432"
+    volumes:
+      - auth_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U auth_user -d auth_db"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - packedgo-network
+
+  # Users Service
+  users-service:
+    build:
+      context: ./users-service
+      dockerfile: Dockerfile
+    ports:
+      - "8082:8082"
+      - "5006:5006"  # Debug port for users-service
+    env_file:
+      - ./users-service/.env
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5006
+      - EVENT_SERVICE_URL=http://event-service:8086/api
+    depends_on:
+      users-db:
+        condition: service_healthy
+    networks:
+      - packedgo-network
+
+  # Users Database
+  users-db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: users_db
+      POSTGRES_USER: users_user
+      POSTGRES_PASSWORD: users_password
+    ports:
+      - "5434:5432"
+    volumes:
+      - users_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U users_user -d users_db"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - packedgo-network
+
+  # Event Service
+  event-service:
+    build:
+      context: ./event-service
+      dockerfile: Dockerfile
+    ports:
+      - "8086:8086"
+      - "5007:5007"  # Debug port for event-service
+    env_file:
+      - ./event-service/.env
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5007
+    depends_on:
+      event-db:
+        condition: service_healthy
+    networks:
+      - packedgo-network
+
+  # Event Database
+  event-db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: event_db
+      POSTGRES_USER: event_user
+      POSTGRES_PASSWORD: event_password
+    ports:
+      - "5435:5432"
+    volumes:
+      - event_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U event_user -d event_db"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - packedgo-network
+
+  # Order Service
+  order-service:
+    build:
+      context: ./order-service
+      dockerfile: Dockerfile
+    ports:
+      - "8084:8084"
+      - "5008:5008"  # Debug port for order-service
+    env_file:
+      - ./order-service/.env
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5008
+    depends_on:
+      order-db:
+        condition: service_healthy
+      event-service:
+        condition: service_started
+      auth-service:
+        condition: service_started
+    networks:
+      - packedgo-network
+
+  # Order Database
+  order-db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: order_db
+      POSTGRES_USER: order_user
+      POSTGRES_PASSWORD: order_password
+    ports:
+      - "5436:5432"
+    volumes:
+      - order_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U order_user -d order_db"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - packedgo-network
+
+  # Payment Service
+  payment-service:
+    build:
+      context: ./payment-service
+      dockerfile: Dockerfile
+    ports:
+      - "8085:8085"  # Fixed: service runs on 8085 inside container
+      - "5009:5009"  # Debug port for payment-service
+    env_file:
+      - ./payment-service/.env
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5009
+      - DB_URL=jdbc:postgresql://payment-db:5432/payment_db
+      - DB_USERNAME=payment_user
+      - DB_PASSWORD=payment_password
+      - JWT_SECRET=mySecretKey123456789PackedGoAuth2025VerySecureKey
+      - ORDER_SERVICE_URL=http://order-service:8084
+    depends_on:
+      payment-db:
+        condition: service_healthy
+    networks:
+      - packedgo-network
+
+  # Payment Database
+  payment-db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: payment_db
+      POSTGRES_USER: payment_user
+      POSTGRES_PASSWORD: payment_password
+    ports:
+      - "5437:5432"
+    volumes:
+      - payment_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U payment_user -d payment_db"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - packedgo-network
+
+  # Analytics Service
+  analytics-service:
+    build:
+      context: ./analytics-service
+      dockerfile: Dockerfile
+    ports:
+      - "8087:8087"
+      - "5011:5010"  # Debug port for analytics-service
+    env_file:
+      - ./analytics-service/.env
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5010
+      - APP_SERVICES_EVENT-SERVICE_BASE-URL=http://event-service:8086
+      - APP_SERVICES_ORDER-SERVICE_BASE-URL=http://order-service:8084
+      - APP_SERVICES_PAYMENT-SERVICE_BASE-URL=http://payment-service:8085
+    networks:
+      - packedgo-network
+
+networks:
+  packedgo-network:
+    driver: bridge
+
+volumes:
+  auth_db_data:
+  users_db_data:
+  event_db_data:
+  order_db_data:
+  payment_db_data:

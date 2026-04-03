@@ -1,0 +1,41 @@
+# Development Environment Configuration
+spring.application.name=payment-service
+
+# Server Configuration
+server.port=8082
+server.servlet.context-path=/
+
+# Database Configuration - PostgreSQL
+spring.datasource.url=jdbc:postgresql://localhost:5432/payment_service_db
+spring.datasource.username=postgres
+spring.datasource.password=postgres
+spring.datasource.driver-class-name=org.postgresql.Driver
+
+# JPA/Hibernate Configuration
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
+spring.jpa.properties.hibernate.format_sql=true
+spring.jpa.properties.hibernate.jdbc.lob.non_contextual_creation=true
+
+# Logging Configuration - More verbose for development
+logging.level.root=INFO
+logging.level.com.packedgo.payment_service=DEBUG
+logging.level.org.springframework.web=DEBUG
+logging.level.org.hibernate.SQL=DEBUG
+logging.level.org.hibernate.type.descriptor.sql.BasicBinder=TRACE
+logging.pattern.console=%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n
+
+# Actuator Configuration
+management.endpoints.web.exposure.include=*
+management.endpoint.health.show-details=always
+management.health.db.enabled=true
+
+# MercadoPago Webhook Configuration
+mercadopago.webhook.url=http://localhost:8082/api/payments/webhook
+
+# CORS Configuration
+cors.allowed-origins=http://localhost:3000,http://localhost:4200,http://localhost:8080
+
+# Security
+spring.security.filter.order=5

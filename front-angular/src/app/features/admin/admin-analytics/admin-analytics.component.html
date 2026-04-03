@@ -1,0 +1,240 @@
+<div class="management-container">
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <button class="btn-back" routerLink="/admin/dashboard">
+        <i class="bi bi-arrow-left"></i>
+      </button>
+      <i class="bi bi-graph-up"></i>
+      <span>Panel de Analíticas</span>
+    </div>
+    <div class="navbar-actions">
+      <button class="btn-refresh" (click)="refreshDashboard()" [disabled]="isLoading">
+        <i class="bi bi-arrow-clockwise"></i>
+        {{ isLoading ? 'Actualizando...' : 'Actualizar' }}
+      </button>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="management-content">
+
+    <!-- Loading State -->
+    <div *ngIf="isLoading && !dashboard" class="loading">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">Cargando...</span>
+      </div>
+      <p class="mt-3">Cargando datos de analytics...</p>
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="error" class="alert alert-danger alert-dismissible fade show" role="alert">
+      <i class="bi bi-exclamation-triangle-fill me-2"></i>
+      <strong>Error:</strong> {{ error }}
+      <button type="button" class="btn-close" (click)="error = null"></button>
+    </div>
+
+    <!-- Header Section -->
+    <div *ngIf="dashboard" class="header-section">
+      <div class="header-left">
+        <h1>Analíticas</h1>
+      </div>
+    </div>
+
+    <!-- Dashboard Content -->
+    <div *ngIf="dashboard && !isLoading">
+      <!-- KPI Cards Row -->
+      <div class="kpi-cards-grid">
+        <!-- Revenue Card -->
+        <div class="kpi-card kpi-revenue">
+          <div class="kpi-icon">
+            <i class="bi bi-currency-dollar"></i>
+          </div>
+          <div class="kpi-content">
+            <h6 class="kpi-label">Ingresos Totales</h6>
+            <h3 class="kpi-value">{{ formatCurrency(dashboard.revenueMetrics?.totalRevenue) }}</h3>
+            <small class="kpi-detail">Este mes: {{ formatCurrency(dashboard.revenueMetrics?.revenueThisMonth) }}</small>
+          </div>
+          <span class="kpi-badge" *ngIf="dashboard.revenueMetrics?.revenueThisMonth">
+            <i class="bi bi-graph-up-arrow"></i>
+            {{ formatCurrency(dashboard.revenueMetrics?.revenueThisMonth) }}
+          </span>
+        </div>
+
+        <!-- Tickets Sold Card -->
+        <div class="kpi-card kpi-tickets">
+          <div class="kpi-icon">
+            <i class="bi bi-ticket-perforated"></i>
+          </div>
+          <div class="kpi-content">
+            <h6 class="kpi-label">Tickets Vendidos</h6>
+            <h3 class="kpi-value">{{ dashboard.salesMetrics.totalTicketsSold }}</h3>
+            <small class="kpi-detail">{{ dashboard.salesMetrics.totalOrders }} órdenes</small>
+          </div>
+        </div>
+
+        <!-- Events Card -->
+        <div class="kpi-card kpi-events">
+          <div class="kpi-icon">
+            <i class="bi bi-calendar-event"></i>
+          </div>
+          <div class="kpi-content">
+            <h6 class="kpi-label">Eventos</h6>
+            <h3 class="kpi-value">{{ dashboard.eventMetrics.totalEvents }}</h3>
+            <small class="kpi-detail">{{ dashboard.eventMetrics.activeEvents }} activos</small>
+          </div>
+        </div>
+
+        <!-- Occupancy Card -->
+        <div class="kpi-card kpi-occupancy">
+          <div class="kpi-icon">
+            <i class="bi bi-people"></i>
+          </div>
+          <div class="kpi-content">
+            <h6 class="kpi-label">Ocupación Promedio</h6>
+            <h3 class="kpi-value">{{ formatPercentage(dashboard.eventMetrics.averageOccupancyRate) }}</h3>
+            <small class="kpi-detail">{{ dashboard.eventMetrics.totalCapacity }} capacidad total</small>
+          </div>
+        </div>
+      </div>
+
+      <!-- Revenue Breakdown Row -->
+      <div class="analytics-row">
+        <div class="analytics-card large-card">
+          <div class="card-header">
+            <h5><i class="bi bi-bar-chart me-2"></i>Desglose de Ingresos</h5>
+          </div>
+          <div class="card-content">
+            <div class="revenue-breakdown">
+              <div class="revenue-item">
+                <div class="revenue-info">
+                  <span class="revenue-label">Ingresos por Tickets</span>
+                  <strong class="revenue-amount">{{ formatCurrency(dashboard.revenueMetrics?.revenueFromTickets) }}</strong>
+                </div>
+                <div class="progress-bar-wrapper">
+                  <div class="progress-bar primary-bar" 
+                       [style.width.%]="((dashboard.revenueMetrics?.revenueFromTickets || 0) / (dashboard.revenueMetrics?.totalRevenue || 1)) * 100">
+                  </div>
+                </div>
+              </div>
+              <div class="revenue-item">
+                <div class="revenue-info">
+                  <span class="revenue-label">Ingresos por Consumibles</span>
+                  <strong class="revenue-amount">{{ formatCurrency(dashboard.revenueMetrics?.revenueFromConsumptions) }}</strong>
+                </div>
+                <div class="progress-bar-wrapper">
+                  <div class="progress-bar success-bar" 
+                       [style.width.%]="((dashboard.revenueMetrics?.revenueFromConsumptions || 0) / (dashboard.revenueMetrics?.totalRevenue || 1)) * 100">
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="metrics-divider"></div>
+            <div class="metrics-grid">
+              <div class="metric-item">
+                <h6 class="metric-label">Tasa de Conversión</h6>
+                <h4 class="metric-value primary">{{ formatPercentage(dashboard.salesMetrics.conversionRate) }}</h4>
+              </div>
+              <div class="metric-item">
+                <h6 class="metric-label">Tickets por Orden</h6>
+                <h4 class="metric-value success">{{ formatNumber(dashboard.salesMetrics.averageTicketsPerOrder, 2) }}</h4>
+              </div>
+              <div class="metric-item">
+                <h6 class="metric-label">Redención Consumibles</h6>
+                <h4 class="metric-value warning">{{ formatPercentage(dashboard.consumptionMetrics.redemptionRate) }}</h4>
+              </div>
+              <div class="metric-item">
+                <h6 class="metric-label">Redención Entradas</h6>
+                <h4 class="metric-value success">{{ formatPercentage(dashboard.consumptionMetrics.ticketRedemptionRate) }}</h4>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="analytics-card small-card">
+          <div class="card-header">
+            <h5><i class="bi bi-graph-up-arrow me-2"></i>Crecimiento Mensual</h5>
+          </div>
+          <div class="card-content">
+            <div class="growth-highlight">
+              <div class="growth-icon">
+                <i class="bi bi-graph-up-arrow"></i>
+              </div>
+              <h1 class="growth-value">{{ formatCurrency(dashboard.revenueMetrics?.revenueThisMonth) }}</h1>
+              <p class="growth-label">Ingresos este mes</p>
+            </div>
+            <div class="growth-details">
+              <div class="growth-detail-item">
+                <span class="detail-label">Esta semana:</span>
+                <strong class="detail-value">{{ formatCurrency(dashboard.revenueMetrics?.revenueThisWeek) }}</strong>
+              </div>
+              <div class="growth-detail-item">
+                <span class="detail-label">Hoy:</span>
+                <strong class="detail-value">{{ formatCurrency(dashboard.revenueMetrics?.revenueToday) }}</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Top Performers Row -->
+      <div class="analytics-row">
+        <div class="analytics-card half-card">
+          <div class="card-header">
+            <h5><i class="bi bi-trophy me-2"></i>Top 5 Eventos</h5>
+          </div>
+          <div class="card-content">
+            <div *ngIf="!dashboard.topPerformers?.topEvents || dashboard.topPerformers.topEvents.length === 0" class="empty-state">
+              <i class="bi bi-inbox"></i>
+              <p>No hay datos de eventos disponibles</p>
+            </div>
+            <div class="top-list">
+              <div *ngFor="let event of dashboard.topPerformers?.topEvents; let i = index" class="top-item">
+                <div class="top-rank">
+                  <span class="rank-badge primary">#{{ i + 1 }}</span>
+                </div>
+                <div class="top-info">
+                  <h6 class="top-name">{{ event.eventName }}</h6>
+                  <small class="top-details">
+                    {{ event.ticketsSold }} tickets vendidos | 
+                    {{ formatPercentage(event.occupancyRate) }} ocupación
+                  </small>
+                </div>
+                <strong class="top-value primary">{{ formatCurrency(event.revenue) }}</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="analytics-card half-card">
+          <div class="card-header">
+            <h5><i class="bi bi-cup-hot-fill me-2"></i>Top 5 Consumibles</h5>
+          </div>
+          <div class="card-content">
+            <div *ngIf="!dashboard.topPerformers?.topConsumptions || dashboard.topPerformers.topConsumptions.length === 0" class="empty-state">
+              <i class="bi bi-inbox"></i>
+              <p>No hay datos de consumibles disponibles</p>
+            </div>
+            <div class="top-list">
+              <div *ngFor="let consumption of dashboard.topPerformers?.topConsumptions; let i = index" class="top-item">
+                <div class="top-rank">
+                  <span class="rank-badge danger">#{{ i + 1 }}</span>
+                </div>
+                <div class="top-info">
+                  <h6 class="top-name">{{ consumption.consumptionName }}</h6>
+                  <small class="top-details">
+                    {{ consumption.quantitySold }} unidades • {{ formatCurrency(consumption.revenue) }}
+                  </small>
+                </div>
+                <strong class="top-value danger">{{ consumption.quantitySold }} unidades</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Trends Section -->
+
+    </div>
+  </div>
+</div>

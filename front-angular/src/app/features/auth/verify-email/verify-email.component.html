@@ -1,0 +1,34 @@
+<div class="verify-email-container">
+  <div class="verify-card">
+    <!-- Logo -->
+    <div class="logo-section">
+      <div class="logo-icon">🎒</div>
+      <h1>PackedGo</h1>
+    </div>
+
+    <!-- Verificando -->
+    <div *ngIf="isVerifying" class="status-section verifying">
+      <div class="spinner"></div>
+      <h2>Verificando tu email...</h2>
+      <p>Por favor espera mientras verificamos tu dirección de email.</p>
+    </div>
+
+    <!-- Éxito -->
+    <div *ngIf="!isVerifying && isSuccess" class="status-section success">
+      <div class="success-icon">✓</div>
+      <h2>¡Email verificado exitosamente!</h2>
+      <p>{{ successMessage }}</p>
+      <p class="redirect-message">Serás redirigido al login en unos segundos...</p>
+      <button class="btn-primary" (click)="goToLogin()">Ir al login ahora</button>
+    </div>
+
+    <!-- Error -->
+    <div *ngIf="!isVerifying && !isSuccess" class="status-section error">
+      <div class="error-icon">✕</div>
+      <h2>Error al verificar email</h2>
+      <p>{{ errorMessage }}</p>
+      <p class="redirect-message">Serás redirigido al login en unos segundos...</p>
+      <button class="btn-primary" (click)="goToLogin()">Volver al login ahora</button>
+    </div>
+  </div>
+</div>

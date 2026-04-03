@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verificación de Email - PackedGo</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .title {
+            color: #34495e;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        .content {
+            color: #555;
+            font-size: 16px;
+            margin-bottom: 30px;
+        }
+        .button {
+            display: inline-block;
+            background-color: #3498db;
+            color: white !important;
+            text-decoration: none;
+            padding: 15px 30px;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 16px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .button:hover {
+            background-color: #2980b9;
+        }
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            color: #888;
+            font-size: 14px;
+            text-align: center;
+        }
+        .token-info {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            font-family: monospace;
+            font-size: 14px;
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">🎒 PackedGo</div>
+            <h1 class="title">¡Bienvenido a PackedGo!</h1>
+        </div>
+        
+        <div class="content">
+            <p>Hola <strong>{{USERNAME}}</strong>,</p>
+            
+            <p>¡Gracias por registrarte en PackedGo! Para completar tu registro y comenzar a planificar tus aventuras, necesitas verificar tu dirección de email.</p>
+            
+            <p>Haz clic en el siguiente botón para verificar tu cuenta:</p>
+            
+            <div style="text-align: center;">
+                <a href="{{VERIFICATION_URL}}" class="button">Verificar mi Email</a>
+            </div>
+            
+            <p>Si el botón no funciona, también puedes copiar y pegar el siguiente enlace en tu navegador:</p>
+            <div class="token-info">{{VERIFICATION_URL}}</div>
+            
+            <p><strong>Importante:</strong> Este enlace expira en 24 horas por seguridad.</p>
+            
+            <p>Si no creaste esta cuenta, puedes ignorar este email de forma segura.</p>
+        </div>
+        
+        <div class="footer">
+            <p>Este es un email automático, por favor no respondas a este mensaje.</p>
+            <p>&copy; 2025 PackedGo. Todos los derechos reservados.</p>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,224 @@
+<div class="event-detail-container">
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-container">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Cargando...</span>
+    </div>
+    <p>Cargando detalles del evento...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="errorMessage && !isLoading" class="alert alert-danger">
+    {{ errorMessage }}
+    <button class="btn btn-primary mt-3" (click)="goBack()">
+      <i class="bi bi-arrow-left"></i> Volver al Dashboard
+    </button>
+  </div>
+
+  <!-- Event Details -->
+  <div *ngIf="event && !isLoading" class="event-detail">
+    <!-- Back Button -->
+    <button class="btn-back" (click)="goBack()">
+      <i class="bi bi-arrow-left"></i> Volver
+    </button>
+
+    <!-- Event Info Section -->
+    <div class="event-info-section">
+      <!-- Image Column -->
+      <div class="event-image-column">
+        <img [src]="getEventImageSrc()" [alt]="event.name" />
+      </div>
+
+      <!-- Event Details Column -->
+      <div class="event-details-column">
+        <h1>{{ event.name }}</h1>
+        <p class="event-description">{{ event.description }}</p>
+
+        <div class="event-meta">
+          <div class="meta-item">
+            <i class="bi bi-calendar-event"></i>
+            <span>Inicio: {{ event.startTime | date: 'dd/MM/yyyy HH:mm' }}</span>
+          </div>
+          <div class="meta-item">
+            <i class="bi bi-calendar-check"></i>
+            <span>Fin: {{ event.endTime | date: 'dd/MM/yyyy HH:mm' }}</span>
+          </div>
+          <div class="meta-item">
+            <i class="bi bi-geo-alt-fill"></i>
+            <span class="location-link" (click)="openMapModal()">
+              {{ getEventAddress() }}
+            </span>
+          </div>
+          <div class="meta-item">
+            <i class="bi bi-tag-fill"></i>
+            <span>Categoría: {{ getCategoryName() }}</span>
+          </div>
+        </div>
+
+        <div class="price-quantity-section">
+          <div class="price-tag">
+            <span class="price-label">Precio:</span>
+            <span class="price-amount">{{ event.basePrice | currency: 'USD':'symbol':'1.2-2' }}</span>
+          </div>
+
+          <div class="quantity-selector">
+            <label>Cantidad:</label>
+            <div class="quantity-controls">
+              <button 
+                class="btn-quantity" 
+                (click)="decrementQuantity()"
+                [disabled]="quantity <= 1"
+              >
+                <i class="bi bi-dash"></i>
+              </button>
+              <span class="quantity-display">{{ quantity }}</span>
+              <button 
+                class="btn-quantity" 
+                (click)="incrementQuantity()"
+                [disabled]="quantity >= getMaxQuantity()"
+              >
+                <i class="bi bi-plus"></i>
+              </button>
+            </div>
+            <small class="quantity-hint" *ngIf="getMaxQuantity() > 0">
+              Máximo: {{ getMaxQuantity() }} entrada(s)
+            </small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Consumptions Section -->
+    <div class="consumptions-wrapper" *ngIf="event.availableConsumptions && event.availableConsumptions.length > 0">
+      <h3 class="consumptions-title">
+        <i class="bi bi-cup-straw"></i>
+        Consumos Disponibles
+      </h3>
+      <p class="consumptions-subtitle">Agrega consumos opcionales a tu compra</p>
+      
+      <div class="consumption-search-wrapper">
+        <i class="bi bi-search search-icon"></i>
+        <input 
+          type="text" 
+          class="consumption-search-input"
+          placeholder="Buscar consumo..."
+          [(ngModel)]="consumptionSearchTerm"
+          (input)="onConsumptionSearch()"
+        />
+      </div>
+      
+      <div class="consumptions-carousel">
+              <button 
+                class="carousel-btn prev"
+                (click)="prevConsumption()"
+                [disabled]="currentConsumptionIndex === 0"
+              >
+                <i class="bi bi-chevron-left"></i>
+              </button>
+
+              <div class="consumptions-display">
+                <div 
+                  *ngFor="let consumption of getVisibleConsumptions()"
+                  class="consumption-card"
+                  [class.selected]="isConsumptionSelected(consumption.id!)"
+                >
+                <div class="consumption-image" *ngIf="hasConsumptionImage(consumption)">
+                  <img [src]="getConsumptionImageSrc(consumption)" [alt]="consumption.name">
+                </div>
+                
+                <div class="consumption-info">
+                  <h4>{{ consumption.name }}</h4>
+                  <p class="consumption-description" *ngIf="consumption.description">
+                    {{ consumption.description }}
+                  </p>
+                  <div class="consumption-price">
+                    {{ consumption.price | currency: 'USD':'symbol':'1.2-2' }}
+                  </div>
+                </div>
+
+                <div class="consumption-actions">
+                  <div *ngIf="!isConsumptionSelected(consumption.id!)" class="add-consumption">
+                    <button 
+                      class="btn-add-consumption"
+                      (click)="toggleConsumption(consumption.id!)"
+                    >
+                      <i class="bi bi-plus-circle"></i> Agregar
+                    </button>
+                  </div>
+
+                  <div *ngIf="isConsumptionSelected(consumption.id!)" class="consumption-quantity">
+                    <button 
+                      class="btn-quantity-small"
+                      (click)="decrementConsumption(consumption.id!)"
+                    >
+                      <i class="bi bi-dash"></i>
+                    </button>
+                    <span class="quantity-value">{{ getConsumptionQuantity(consumption.id!) }}</span>
+                    <button 
+                      class="btn-quantity-small"
+                      (click)="incrementConsumption(consumption.id!)"
+                      [disabled]="getConsumptionQuantity(consumption.id!) >= 10"
+                    >
+                      <i class="bi bi-plus"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+        <button 
+          class="carousel-btn next"
+          (click)="nextConsumption()"
+          [disabled]="currentConsumptionIndex >= getFilteredConsumptions().length - itemsPerPage"
+        >
+          <i class="bi bi-chevron-right"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Cart Actions Section -->
+    <div class="cart-actions-section">
+      <div class="total-price">
+        <span class="total-label">Total:</span>
+        <span class="total-amount">{{ getTotalPrice() | currency: 'USD':'symbol':'1.2-2' }}</span>
+      </div>
+
+      <button 
+        class="btn-add-to-cart" 
+        (click)="addToCart()"
+        [disabled]="isAddingToCart"
+      >
+        <i class="bi bi-cart-plus"></i>
+        {{ isAddingToCart ? 'Agregando...' : 'Agregar al Carrito' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Map Modal -->
+<div *ngIf="showMapModal && event" class="map-modal-overlay" (click)="closeMapModal()" (keydown)="onMapModalKeydown($event)" tabindex="0">
+  <div class="map-modal-content" (click)="$event.stopPropagation()">
+    <div class="map-modal-header">
+      <h3><i class="bi bi-geo-alt-fill"></i> Ubicación del Evento</h3>
+      <button class="close-modal-btn" (click)="closeMapModal()">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+    <div class="map-modal-body">
+      <iframe
+        [src]="'https://www.openstreetmap.org/export/embed.html?bbox=' + (event.lng - 0.01) + ',' + (event.lat - 0.01) + ',' + (event.lng + 0.01) + ',' + (event.lat + 0.01) + '&layer=mapnik&marker=' + event.lat + ',' + event.lng | safe: 'resourceUrl'"
+        style="border: none; width: 100%; height: 450px; border-radius: 8px;"
+      ></iframe>
+      <div class="map-modal-footer">
+        <a 
+          [href]="'https://www.google.com/maps?q=' + event.lat + ',' + event.lng" 
+          target="_blank" 
+          class="btn-open-google-maps"
+        >
+          <i class="bi bi-map"></i>
+          Abrir en Google Maps
+        </a>
+      </div>
+    </div>
+  </div>
+</div>

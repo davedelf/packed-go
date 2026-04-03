@@ -1,0 +1,127 @@
+<div class="customer-alert">
+  <i class="bi bi-person-circle"></i> Área de Clientes
+</div>
+
+<div class="login-container">
+  <!-- Back to Landing Button -->
+  <button type="button" class="btn-back-landing" (click)="goToLanding()">
+    <i class="bi bi-arrow-left"></i> Volver al inicio
+  </button>
+
+  <div class="text-center mb-4">
+    <div class="logo-container mb-3">
+      <img src="images/logo-packedgo.svg" alt="PackedGo Logo" class="logo-main">
+    </div>
+    <h2 class="title">Login Cliente</h2>
+    <p class="subtitle">Accede a tus eventos y tickets</p>
+  </div>
+
+  <!-- Error Alert -->
+  <div *ngIf="errorMessage" [class]="resendSuccess ? 'alert alert-success alert-dismissible fade show' : 'alert alert-danger alert-dismissible fade show'" role="alert">
+    <i [class]="resendSuccess ? 'bi bi-check-circle-fill me-2' : 'bi bi-exclamation-triangle-fill me-2'"></i>
+    {{ errorMessage }}
+    <button type="button" class="btn-close" (click)="errorMessage = ''" aria-label="Close"></button>
+  </div>
+
+  <!-- Resend Email Button -->
+  <div *ngIf="showResendEmailButton" class="alert alert-warning" role="alert">
+    <div class="d-flex align-items-center justify-content-between">
+      <span>
+        <i class="bi bi-envelope-exclamation me-2"></i>
+        ¿No recibiste el correo?
+      </span>
+      <button 
+        type="button" 
+        class="btn btn-sm btn-outline-warning"
+        (click)="resendVerificationEmail()"
+        [disabled]="resendingEmail">
+        <span *ngIf="!resendingEmail">
+          <i class="bi bi-send"></i> Reenviar Email
+        </span>
+        <span *ngIf="resendingEmail">
+          <span class="spinner-border spinner-border-sm me-1"></span>
+          Enviando...
+        </span>
+      </button>
+    </div>
+  </div>
+
+  <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+    <!-- Document -->
+    <div class="mb-3">
+      <label for="document" class="form-label">
+        <i class="bi bi-card-text"></i> Número de Documento
+      </label>
+      <input 
+        type="text" 
+        class="form-control" 
+        id="document" 
+        formControlName="document"
+        placeholder="12345678"
+        [class.is-invalid]="document?.invalid && document?.touched"
+      >
+      <div *ngIf="document?.invalid && document?.touched" class="invalid-feedback">
+        <div *ngIf="document?.errors?.['required']">El documento es requerido</div>
+        <div *ngIf="document?.errors?.['pattern']">Ingresa solo números</div>
+      </div>
+    </div>
+
+    <!-- Password -->
+    <div class="mb-3">
+      <label for="password" class="form-label">
+        <i class="bi bi-lock-fill"></i> Contraseña
+      </label>
+      <div class="password-input-container">
+        <input 
+          [type]="showPassword ? 'text' : 'password'" 
+          class="form-control" 
+          id="password" 
+          formControlName="password"
+          placeholder="••••••••"
+          [class.is-invalid]="password?.invalid && password?.touched"
+        >
+        <button 
+          type="button" 
+          class="password-toggle" 
+          (click)="togglePasswordVisibility()"
+        >
+          <i [class]="showPassword ? 'bi bi-eye-slash-fill' : 'bi bi-eye-fill'"></i>
+        </button>
+      </div>
+      <div *ngIf="password?.invalid && password?.touched" class="invalid-feedback d-block">
+        <div *ngIf="password?.errors?.['required']">La contraseña es requerida</div>
+        <div *ngIf="password?.errors?.['minlength']">La contraseña debe tener al menos 6 caracteres</div>
+      </div>
+    </div>
+
+    <!-- Submit Button -->
+    <button 
+      type="submit" 
+      class="btn btn-customer w-100" 
+      [disabled]="isLoading"
+    >
+      <span *ngIf="!isLoading">
+        <i class="bi bi-box-arrow-in-right"></i> Iniciar Sesión
+      </span>
+      <span *ngIf="isLoading">
+        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+        Iniciando sesión...
+      </span>
+    </button>
+  </form>
+
+  <div class="divider">
+    <span>O</span>
+  </div>
+
+  <div class="text-center">
+    <p class="register-text">
+      ¿Nuevo en PackedGo? 
+      <a routerLink="/customer/register" class="register-link">Crear cuenta</a>
+    </p>
+    <p class="admin-link">
+      <i class="bi bi-shield-lock-fill"></i>
+      ¿Eres administrador? <a routerLink="/admin/login">Inicia sesión aquí</a>
+    </p>
+  </div>
+</div>

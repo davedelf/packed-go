@@ -1,0 +1,62 @@
+<svg width="380" height="400" viewBox="0 0 380 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Box with QR code -->
+  <g id="box">
+    <!-- Main box outline -->
+    <path d="M241 175 L381 240 L381 360 L241 425 L101 360 L101 240 Z" fill="#E8F4F8" stroke="#1E3A5F" stroke-width="8"/>
+    <!-- Top flap left -->
+    <path d="M241 175 L101 240 L241 305" fill="#D0E8F0" stroke="#1E3A5F" stroke-width="8"/>
+    <!-- Top flap right -->
+    <path d="M241 175 L381 240 L241 305" fill="#F0F8FC" stroke="#1E3A5F" stroke-width="8"/>
+    <!-- Center line -->
+    <line x1="241" y1="305" x2="241" y2="425" stroke="#1E3A5F" stroke-width="8"/>
+    
+    <!-- QR Code stylized -->
+    <g id="qr-code" transform="translate(140, 280)">
+      <!-- Outer corners (green squares) -->
+      <rect x="0" y="0" width="25" height="25" fill="#4CAF50" rx="3"/>
+      <rect x="45" y="0" width="25" height="25" fill="#4CAF50" rx="3"/>
+      <rect x="0" y="45" width="25" height="25" fill="#4CAF50" rx="3"/>
+      
+      <!-- Inner pattern (black) -->
+      <rect x="8" y="8" width="9" height="9" fill="#1E3A5F"/>
+      <rect x="53" y="8" width="9" height="9" fill="#1E3A5F"/>
+      <rect x="8" y="53" width="9" height="9" fill="#1E3A5F"/>
+      
+      <!-- Middle dots -->
+      <rect x="28" y="12" width="6" height="6" fill="#1E3A5F"/>
+      <rect x="38" y="12" width="6" height="6" fill="#1E3A5F"/>
+      <rect x="12" y="28" width="6" height="6" fill="#1E3A5F"/>
+      <rect x="28" y="28" width="6" height="6" fill="#1E3A5F"/>
+      <rect x="38" y="28" width="6" height="6" fill="#1E3A5F"/>
+      <rect x="53" y="28" width="6" height="6" fill="#1E3A5F"/>
+      <rect x="12" y="38" width="6" height="6" fill="#1E3A5F"/>
+      <rect x="28" y="38" width="6" height="6" fill="#1E3A5F"/>
+      <rect x="38" y="53" width="6" height="6" fill="#1E3A5F"/>
+      <rect x="53" y="38" width="6" height="6" fill="#1E3A5F"/>
+      <rect x="53" y="53" width="6" height="6" fill="#1E3A5F"/>
+    </g>
+    
+    <!-- Ticket perforation line -->
+    <g id="perforation">
+      <circle cx="268" cy="315" r="3" fill="#1E3A5F"/>
+      <circle cx="268" cy="330" r="3" fill="#1E3A5F"/>
+      <circle cx="268" cy="345" r="3" fill="#1E3A5F"/>
+      <circle cx="268" cy="360" r="3" fill="#1E3A5F"/>
+      <circle cx="268" cy="375" r="3" fill="#1E3A5F"/>
+    </g>
+    
+    <!-- "Go" leaf logo on ticket -->
+    <g id="go-logo" transform="translate(300, 330)">
+      <path d="M0 0 L8 -8 L12 -4 L8 0 L12 4 L8 8 Z" fill="#4CAF50"/>
+      <path d="M14 -2 L20 -8 L24 -4 L20 0 L24 4 L20 8 L14 2 Z" fill="#4CAF50"/>
+      <text x="28" y="6" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#4CAF50">Go</text>
+    </g>
+  </g>
+  
+  <!-- Logo text -->
+  <text x="190" y="70" font-family="Arial, sans-serif" font-size="48" font-weight="bold" text-anchor="middle">
+    <tspan fill="#1E3A5F">Packed</tspan>
+    <tspan fill="#4CAF50">Go</tspan>
+    <tspan font-size="48" fill="#4CAF50">.</tspan>
+  </text>
+</svg>

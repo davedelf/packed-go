@@ -1,0 +1,46 @@
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# IDE
+.idea/
+.vscode/
+.claude/
+*.iml
+*.iws
+*.ipr
+
+# Documentation
+*.md
+README.md
+LICENSE
+
+# Build artifacts
+target/
+node_modules/
+dist/
+.angular/
+
+# Environment
+.env
+.env.local
+*.env
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Tests
+**/*test/
+**/*Test.java
+**/*.spec.ts

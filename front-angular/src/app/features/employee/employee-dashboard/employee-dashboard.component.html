@@ -1,0 +1,181 @@
+<div class="dashboard-container">
+  <!-- Header -->
+  <header class="dashboard-header">
+    <div class="header-content">
+      <div class="header-left">
+        <img src="images/logo-icon.svg" alt="PackedGo" class="header-logo">
+        <div class="header-info">
+          <h1>Panel de Empleado</h1>
+          <p class="employee-name">{{ employeeName }}</p>
+        </div>
+      </div>
+      <div class="header-right">
+        <button class="btn-logout" (click)="logout()">
+          <i class="bi bi-box-arrow-right"></i>
+          Cerrar Sesión
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <div class="dashboard-content">
+    <!-- Event Selector -->
+    <div class="event-selector" *ngIf="assignedEvents.length > 0">
+      <label>
+        <i class="bi bi-calendar-event-fill"></i>
+        Selecciona el evento:
+      </label>
+      <div class="events-grid">
+        <button class="event-card" 
+                *ngFor="let event of assignedEvents"
+                [class.selected]="selectedEventId === event.id"
+                (click)="selectEvent(event.id)">
+          <i class="bi bi-calendar-check-fill"></i>
+          <div class="event-card-info">
+            <strong>{{ event.name }}</strong>
+            <small>{{ event.date | date:'dd/MM/yyyy' }} - {{ event.location }}</small>
+          </div>
+          <i class="bi bi-check-circle-fill check-icon" *ngIf="selectedEventId === event.id"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Scan Actions -->
+    <div class="scan-actions" *ngIf="!isScanning">
+      <div class="action-group">
+        <button class="btn-scan btn-scan-ticket" (click)="startScanMode('ticket')">
+          <i class="bi bi-qr-code-scan"></i>
+          <span>Escanear Ticket de Entrada</span>
+          <small>Validar entrada al evento</small>
+        </button>
+        <button class="btn-manual-small" (click)="startManualMode('ticket')" title="Ingresar código manualmente">
+          <i class="bi bi-keyboard"></i>
+        </button>
+      </div>
+      
+      <div class="action-group">
+        <button class="btn-scan btn-scan-consumption" (click)="startScanMode('consumption')">
+          <i class="bi bi-upc-scan"></i>
+          <span>Escanear Consumo</span>
+          <small>Registrar consumo del cliente</small>
+        </button>
+        <button class="btn-manual-small" (click)="startManualMode('consumption')" title="Ingresar código manualmente">
+          <i class="bi bi-keyboard"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Scanner View (when scanning) -->
+    <div class="scanner-view" *ngIf="isScanning">
+      <div class="scanner-header">
+        <h2>
+          <i class="bi" [class.bi-ticket-perforated]="scanMode === 'ticket'" [class.bi-cup-hot]="scanMode === 'consumption'"></i>
+          {{ scanMode === 'ticket' ? 'Escaneando Ticket' : 'Escaneando Consumo' }}
+        </h2>
+        <button class="btn-cancel" (click)="stopScanning()">
+          <i class="bi bi-x-lg"></i>
+          Cancelar
+        </button>
+      </div>
+      
+      <div class="scanner-container">
+        <zxing-scanner
+          [formats]="allowedFormats"
+          [device]="currentDevice"
+          (scanSuccess)="onScanSuccess($event)"
+          (camerasFound)="onCamerasFound($event)"
+          (permissionResponse)="onCameraPermission($event)"
+          (scanError)="onScanError($event)"
+          [tryHarder]="true"
+          style="width: 100%; max-width: 500px; height: 400px;">
+        </zxing-scanner>
+
+        <div class="scanner-placeholder" *ngIf="hasPermission === false || !hasDevices">
+          <i class="bi bi-camera-video"></i>
+          <p *ngIf="hasPermission === null">Solicitando permisos de cámara...</p>
+          <p *ngIf="hasPermission === false">Necesitas permitir el acceso a la cámara</p>
+          <p *ngIf="hasPermission === true && !hasDevices">No se detectó ninguna cámara</p>
+        </div>
+      </div>
+
+      <!-- Manual Input Alternative -->
+      <div class="manual-input">
+        <p>¿Problemas con la cámara?</p>
+        <button class="btn-manual" (click)="openManualInput()">
+          <i class="bi bi-keyboard"></i>
+          Ingresar código manualmente
+        </button>
+      </div>
+    </div>
+
+    <!-- Last Scan Result -->
+    <div class="last-scan" *ngIf="lastScanResult && !isScanning">
+      <div class="alert" [class.alert-success]="scanHistory[0]?.status === 'success'" 
+                          [class.alert-danger]="scanHistory[0]?.status === 'error'"
+                          [class.alert-warning]="scanHistory[0]?.status === 'warning'">
+        <i class="bi" [class.bi-check-circle-fill]="scanHistory[0]?.status === 'success'"
+                      [class.bi-x-circle-fill]="scanHistory[0]?.status === 'error'"
+                      [class.bi-exclamation-triangle-fill]="scanHistory[0]?.status === 'warning'"></i>
+        <div class="alert-content">
+          <strong>{{ scanHistory[0]?.message }}</strong>
+          <small>Código: {{ lastScanResult ? getQRCodeSuffix(lastScanResult) : 'N/A' }}</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scan History -->
+    <div class="history-section" *ngIf="scanHistory.length > 0">
+      <div class="history-header">
+        <h3>
+          <i class="bi bi-clock-history"></i>
+          Historial de Escaneos
+        </h3>
+        <button class="btn-clear-history" (click)="clearHistory()">
+          <i class="bi bi-trash"></i>
+          Limpiar
+        </button>
+      </div>
+
+      <div class="history-list">
+        <div class="history-item" *ngFor="let record of scanHistory" 
+             [class.history-ticket]="record.type === 'ticket'"
+             [class.history-consumption]="record.type === 'consumption'">
+          <div class="history-icon">
+            <i class="bi" [class.bi-ticket-perforated-fill]="record.type === 'ticket'"
+                          [class.bi-cup-hot-fill]="record.type === 'consumption'"></i>
+          </div>
+          <div class="history-info">
+            <div class="history-type">
+              {{ record.type === 'ticket' ? 'Ticket de Entrada' : 'Consumo' }}
+            </div>
+            <div class="history-message">{{ record.message }}</div>
+            <div class="history-event" *ngIf="record.eventName">
+              <i class="bi bi-calendar-event"></i>
+              {{ record.eventName }}
+            </div>
+            <div class="history-code">Código: {{ getQRCodeSuffix(record.qrCode) }}</div>
+          </div>
+          <div class="history-time">
+            <i class="bi bi-clock"></i>
+            {{ record.timestamp | date:'HH:mm:ss' }}
+          </div>
+          <div class="history-status" [class.status-success]="record.status === 'success'"
+                                       [class.status-error]="record.status === 'error'"
+                                       [class.status-warning]="record.status === 'warning'">
+            <i class="bi" [class.bi-check-circle-fill]="record.status === 'success'"
+                          [class.bi-x-circle-fill]="record.status === 'error'"
+                          [class.bi-exclamation-triangle-fill]="record.status === 'warning'"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div class="empty-state" *ngIf="scanHistory.length === 0 && !isScanning">
+      <i class="bi bi-qr-code"></i>
+      <h3>Sin escaneos registrados</h3>
+      <p>Comienza escaneando tickets o consumos usando los botones de arriba</p>
+    </div>
+  </div>
+</div>

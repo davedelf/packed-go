@@ -1,0 +1,377 @@
+:host {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+  position: relative;
+  overflow: hidden;
+  padding: 2rem 0;
+}
+
+:host::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><polygon fill="rgba(255,255,255,0.03)" points="0,100 100,0 100,100"/></svg>') repeat;
+  animation: float 30s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes float {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  50% { transform: translate(30px, -30px) rotate(180deg); }
+}
+
+.admin-alert {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+  color: white;
+  padding: 0.8rem;
+  text-align: center;
+  font-weight: 600;
+  font-size: 0.9rem;
+  z-index: 1001;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.register-container {
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(20px);
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  padding: 3rem;
+  width: 100%;
+  position: relative;
+  max-width: 450px;
+  position: relative;
+  z-index: 2;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  margin-top: 4rem;
+}
+
+.logo-container {
+  font-size: 4rem;
+  color: #ff6b6b;
+  margin-bottom: 1rem;
+}
+
+.title {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 0.5rem;
+}
+
+.subtitle {
+  color: #666;
+  font-size: 0.95rem;
+  margin-bottom: 2rem;
+}
+
+.form-label {
+  font-weight: 500;
+  color: #495057;
+  margin-bottom: 0.5rem;
+}
+
+.form-label i {
+  margin-right: 0.5rem;
+  color: #ff6b6b;
+}
+
+.form-control {
+  border: 2px solid #e9ecef;
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  background: #fafafa;
+}
+
+.form-control:focus {
+  border-color: #ff6b6b;
+  box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.1);
+  background: white;
+}
+
+.password-input-container {
+  position: relative;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #666;
+  cursor: pointer;
+  padding: 0.5rem;
+  transition: color 0.3s;
+}
+
+.password-toggle:hover {
+  color: #ff6b6b;
+}
+
+.btn-admin {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+  border: none;
+  color: white;
+  padding: 1rem;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 1.1rem;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  margin-top: 1rem;
+}
+
+.btn-admin::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left 0.5s;
+}
+
+.btn-admin:hover::before {
+  left: 100%;
+}
+
+.btn-admin:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+}
+
+.btn-admin:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.divider {
+  text-align: center;
+  margin: 2rem 0;
+  position: relative;
+}
+
+.divider::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: #e9ecef;
+}
+
+.divider span {
+  background: white;
+  padding: 0 1rem;
+  color: #666;
+  font-size: 0.9rem;
+  position: relative;
+}
+
+.login-text {
+  color: #666;
+  margin-bottom: 0;
+}
+
+.login-link {
+  color: #ff6b6b;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.login-link:hover {
+  color: #ee5a52;
+  text-decoration: underline;
+}
+
+.alert {
+  border-radius: 12px;
+  font-size: 0.95rem;
+}
+
+.invalid-feedback {
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+.form-text {
+  display: block;
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+}
+
+/* Back to Landing Button */
+.btn-back-landing {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 25px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 10;
+}
+
+.btn-back-landing:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 107, 107, 0.6);
+  background: linear-gradient(135deg, #ee5a52 0%, #ff6b6b 100%);
+}
+
+.btn-back-landing:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 10px rgba(255, 107, 107, 0.4);
+}
+
+.btn-back-landing i {
+  font-size: 1.1rem;
+  transition: transform 0.3s ease;
+}
+
+.btn-back-landing:hover i {
+  transform: translateX(-3px);
+}
+
+/* Responsive - MEJORADO */
+@media (max-width: 992px) {
+  .logo-container img {
+    width: 180px;
+  }
+
+  .register-form h2 {
+    font-size: 1.75rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .register-container {
+    padding: 2.5rem 2rem;
+    padding-top: 70px;
+  }
+
+  .logo-container img {
+    width: 150px;
+  }
+
+  .register-form h2 {
+    font-size: 1.5rem;
+  }
+
+  .register-form p {
+    font-size: 0.9rem;
+  }
+
+  .form-group input {
+    padding: 0.8rem;
+    font-size: 0.95rem;
+  }
+
+  .btn-submit {
+    padding: 0.85rem;
+    font-size: 0.95rem;
+  }
+
+  .btn-back-landing {
+    top: 15px;
+    left: 15px;
+    padding: 8px 16px;
+    font-size: 0.85rem;
+  }
+
+  .btn-back-landing i {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .register-container {
+    padding: 2rem 1.5rem;
+    padding-top: 65px;
+  }
+
+  .logo-container img {
+    width: 120px;
+  }
+
+  .register-form h2 {
+    font-size: 1.3rem;
+  }
+
+  .register-form p {
+    font-size: 0.85rem;
+  }
+
+  .form-group label {
+    font-size: 0.9rem;
+  }
+
+  .form-group input {
+    padding: 0.7rem;
+    font-size: 0.9rem;
+  }
+
+  .btn-submit {
+    padding: 0.75rem;
+    font-size: 0.9rem;
+  }
+
+  .btn-back-landing {
+    top: 10px;
+    left: 10px;
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    gap: 5px;
+  }
+
+  .alert {
+    padding: 0.85rem;
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 375px) {
+  .logo-container img {
+    width: 100px;
+  }
+
+  .register-form h2 {
+    font-size: 1.2rem;
+  }
+
+  .form-group input {
+    font-size: 0.85rem;
+  }
+
+  .btn-submit {
+    font-size: 0.85rem;
+  }
+}
+

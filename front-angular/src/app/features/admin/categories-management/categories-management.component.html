@@ -1,0 +1,273 @@
+<div class="management-container">
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <button class="btn-back" (click)="goBack()">
+        <i class="bi bi-arrow-left"></i>
+      </button>
+      <i class="bi bi-tags"></i>
+      <span>Gestión de Categorías</span>
+    </div>
+    <div class="navbar-user">
+      <button class="btn btn-logout" (click)="logout()">
+        <i class="bi bi-box-arrow-right"></i>
+        Cerrar Sesión
+      </button>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="management-content">
+    
+    <!-- Success/Error Alerts -->
+    <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show" role="alert">
+      <i class="bi bi-check-circle-fill me-2"></i>
+      {{ successMessage }}
+      <button type="button" class="btn-close" (click)="successMessage = ''"></button>
+    </div>
+
+    <div *ngIf="errorMessage && !showModal" class="alert alert-danger alert-dismissible fade show" role="alert">
+      <i class="bi bi-exclamation-triangle-fill me-2"></i>
+      {{ errorMessage }}
+      <button type="button" class="btn-close" (click)="errorMessage = ''"></button>
+    </div>
+
+    <!-- Header Section -->
+    <div class="header-section">
+      <div class="header-left">
+        <h1>Categorías</h1>
+        <p>Gestiona las categorías de eventos y consumiciones</p>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs-container">
+      <button 
+        class="tab-button"
+        [class.active]="activeTab === 'event'"
+        (click)="switchTab('event')"
+      >
+        <i class="bi bi-calendar-event"></i>
+        Categorías de Eventos
+      </button>
+      <button 
+        class="tab-button"
+        [class.active]="activeTab === 'consumption'"
+        (click)="switchTab('consumption')"
+      >
+        <i class="bi bi-cup-straw"></i>
+        Categorías de Consumiciones
+      </button>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div *ngIf="isLoading" class="loading-container">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Cargando...</span>
+      </div>
+      <p>Cargando categorías...</p>
+    </div>
+
+    <!-- Event Categories Tab -->
+    <div *ngIf="!isLoading && activeTab === 'event'" class="tab-content">
+      <div class="content-header">
+        <h2>Categorías de Eventos</h2>
+        <button class="btn btn-create" (click)="openCreateModal('event')">
+          <i class="bi bi-plus-circle"></i>
+          Nueva Categoría
+        </button>
+      </div>
+
+      <div *ngIf="eventCategories.length === 0" class="no-results">
+        <i class="bi bi-inbox"></i>
+        <h3>No hay categorías de eventos</h3>
+        <p>¡Crea la primera categoría de eventos!</p>
+      </div>
+
+      <div *ngIf="eventCategories.length > 0" class="categories-grid">
+        <div *ngFor="let category of eventCategories" class="category-card">
+          <div class="category-header">
+            <div class="category-icon event-icon">
+              <i class="bi bi-calendar-event"></i>
+            </div>
+            <div class="category-info">
+              <h3>{{ category.name }}</h3>
+              <p *ngIf="category.description">{{ category.description }}</p>
+              <p *ngIf="!category.description" class="text-muted">Sin descripción</p>
+            </div>
+          </div>
+          <div class="category-footer">
+            <span [class]="category.active ? 'badge badge-active' : 'badge badge-inactive'">
+              {{ category.active ? 'Activo' : 'Inactivo' }}
+            </span>
+            <div class="action-buttons">
+              <button 
+                class="btn-action btn-edit" 
+                (click)="openEditModal(category, 'event')"
+                title="Editar"
+              >
+                <i class="bi bi-pencil"></i>
+              </button>
+              <button 
+                class="btn-action btn-delete" 
+                (click)="deleteCategory(category.id!, category.name, 'event')"
+                title="Eliminar"
+              >
+                <i class="bi bi-trash"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Consumption Categories Tab -->
+    <div *ngIf="!isLoading && activeTab === 'consumption'" class="tab-content">
+      <div class="content-header">
+        <h2>Categorías de Consumiciones</h2>
+        <button class="btn btn-create" (click)="openCreateModal('consumption')">
+          <i class="bi bi-plus-circle"></i>
+          Nueva Categoría
+        </button>
+      </div>
+
+      <div *ngIf="consumptionCategories.length === 0" class="no-results">
+        <i class="bi bi-inbox"></i>
+        <h3>No hay categorías de consumiciones</h3>
+        <p>¡Crea la primera categoría de consumiciones!</p>
+      </div>
+
+      <div *ngIf="consumptionCategories.length > 0" class="categories-grid">
+        <div *ngFor="let category of consumptionCategories" class="category-card">
+          <div class="category-header">
+            <div class="category-icon consumption-icon">
+              <i class="bi bi-cup-straw"></i>
+            </div>
+            <div class="category-info">
+              <h3>{{ category.name }}</h3>
+              <p *ngIf="category.description">{{ category.description }}</p>
+              <p *ngIf="!category.description" class="text-muted">Sin descripción</p>
+            </div>
+          </div>
+          <div class="category-footer">
+            <span [class]="category.active ? 'badge badge-active' : 'badge badge-inactive'">
+              {{ category.active ? 'Activo' : 'Inactivo' }}
+            </span>
+            <div class="action-buttons">
+              <button 
+                class="btn-action btn-edit" 
+                (click)="openEditModal(category, 'consumption')"
+                title="Editar"
+              >
+                <i class="bi bi-pencil"></i>
+              </button>
+              <button 
+                class="btn-action btn-delete" 
+                (click)="deleteCategory(category.id!, category.name, 'consumption')"
+                title="Eliminar"
+              >
+                <i class="bi bi-trash"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para Crear/Editar Categoría -->
+<div *ngIf="showModal" class="modal-overlay" (click)="closeModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>
+        <i [class]="isEditMode ? 'bi bi-pencil-square' : 'bi bi-plus-circle'"></i>
+        {{ isEditMode ? 'Editar' : 'Crear' }} Categoría {{ currentCategoryType === 'event' ? 'de Evento' : 'de Consumición' }}
+      </h2>
+      <button class="btn-close-modal" (click)="closeModal()">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <!-- Modal Alerts -->
+    <div *ngIf="successMessage" class="alert alert-success" role="alert">
+      <i class="bi bi-check-circle-fill me-2"></i>
+      {{ successMessage }}
+    </div>
+
+    <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show" role="alert">
+      <i class="bi bi-exclamation-triangle-fill me-2"></i>
+      {{ errorMessage }}
+      <button type="button" class="btn-close" (click)="errorMessage = ''"></button>
+    </div>
+
+    <form [formGroup]="categoryForm" (ngSubmit)="onSubmit()" class="modal-form">
+      
+      <!-- Category Name -->
+      <div class="form-group">
+        <label for="name">
+          <i class="bi bi-tag"></i>
+          Nombre de la Categoría *
+        </label>
+        <input 
+          type="text" 
+          id="name"
+          formControlName="name"
+          class="form-control"
+          [class.is-invalid]="name?.invalid && name?.touched"
+          [class.is-valid]="name?.valid && name?.touched"
+          placeholder="Ej: Conciertos, Bebidas, Comidas..."
+        />
+        <div class="invalid-feedback" *ngIf="name?.touched && name?.invalid">
+          <span *ngIf="name?.errors?.['required']">El nombre es requerido</span>
+          <span *ngIf="name?.errors?.['minlength']">Mínimo 3 caracteres</span>
+          <span *ngIf="name?.errors?.['maxlength']">Máximo 100 caracteres</span>
+        </div>
+      </div>
+
+      <!-- Description -->
+      <div class="form-group">
+        <label for="description">
+          <i class="bi bi-text-paragraph"></i>
+          Descripción (Opcional)
+        </label>
+        <textarea 
+          id="description"
+          formControlName="description"
+          class="form-control"
+          rows="4"
+          placeholder="Describe la categoría en detalle..."
+        ></textarea>
+        <small class="form-text text-muted">
+          <i class="bi bi-info-circle"></i> Máximo 500 caracteres
+        </small>
+      </div>
+
+      <!-- Modal Actions -->
+      <div class="modal-actions">
+        <button 
+          type="button" 
+          class="btn btn-secondary" 
+          (click)="closeModal()"
+          [disabled]="isSubmitting"
+        >
+          Cancelar
+        </button>
+        <button 
+          type="submit" 
+          class="btn btn-primary"
+          [disabled]="isSubmitting"
+        >
+          <span *ngIf="!isSubmitting">
+            <i [class]="isEditMode ? 'bi bi-check-circle' : 'bi bi-plus-circle'"></i>
+            {{ isEditMode ? 'Actualizar' : 'Crear' }} Categoría
+          </span>
+          <span *ngIf="isSubmitting">
+            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+            Guardando...
+          </span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

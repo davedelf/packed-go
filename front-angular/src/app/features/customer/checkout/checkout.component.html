@@ -1,0 +1,178 @@
+<div class="checkout-container">
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-state">
+    <div class="spinner"></div>
+    <p>Procesando tu compra...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="errorMessage && !isLoading" class="error-container">
+    <div class="error-message">
+      <h3>⚠️ Error</h3>
+      <p>{{ errorMessage }}</p>
+      <button class="btn btn-primary" routerLink="/customer/dashboard">
+        Volver al Dashboard
+      </button>
+    </div>
+  </div>
+
+  <!-- Checkout Content -->
+  <div *ngIf="!isLoading && !errorMessage && checkoutResponse" class="checkout-content">
+    <!-- Mensaje de retorno de Stripe -->
+    <div *ngIf="paymentReturnMessage" 
+         class="payment-return-message"
+         [ngClass]="{
+           'alert-success': paymentReturnType === 'success',
+           'alert-warning': paymentReturnType === 'pending',
+           'alert-danger': paymentReturnType === 'error'
+         }">
+      {{ paymentReturnMessage }}
+    </div>
+
+    <!-- Header -->
+    <div class="checkout-header">
+      <h1>🛒 Resumen de tu Compra</h1>
+      <div class="session-info">
+        <span class="badge" [ngClass]="getSessionStatusBadgeClass(checkoutResponse.sessionStatus)">
+          {{ getSessionStatusText(checkoutResponse.sessionStatus) }}
+        </span>
+        <span class="timer" [class.timer-warning]="timeRemaining < 300">
+          ⏱️ {{ formatTimeRemaining() }}
+        </span>
+      </div>
+    </div>
+
+    <!-- Session Summary -->
+    <div class="session-summary">
+      <div class="summary-item">
+        <span class="label">Total a pagar:</span>
+        <span class="value total">${{ checkoutResponse.totalAmount | number:'1.2-2' }}</span>
+      </div>
+      <div class="summary-item">
+        <span class="label">Órdenes:</span>
+        <span class="value">{{ checkoutResponse.totalGroups }}</span>
+      </div>
+      <div class="summary-item">
+        <span class="label">Pagadas:</span>
+        <span class="value success">{{ checkoutResponse.paidGroups }} / {{ checkoutResponse.totalGroups }}</span>
+      </div>
+      <div class="summary-item">
+        <span class="label">Pendiente:</span>
+        <span class="value warning">${{ pendingAmount | number:'1.2-2' }}</span>
+      </div>
+    </div>
+
+    <!-- Warning Message -->
+    <div class="warning-box">
+      <p><strong>⚠️ Importante:</strong> Tu compra incluye eventos de {{ checkoutResponse.totalGroups }} organizador(es) diferente(s).</p>
+      <p>Deberás completar {{ checkoutResponse.totalGroups }} pago(s) separado(s) para confirmar tu compra.</p>
+      <p><strong>💡 Después de pagar:</strong> Serás redirigido automáticamente de vuelta al checkout. Si tienes más pagos pendientes, aparecerán aquí.</p>
+    </div>
+
+    <!-- Payment Groups -->
+    <div class="payment-groups">
+      <h2>Pagos Requeridos</h2>
+
+      <div *ngFor="let group of paymentGroups; let i = index" class="payment-group-card">
+        <!-- Card Header -->
+        <div class="card-header">
+          <div class="header-left">
+            <h3>📦 Organizador #{{ i + 1 }}</h3>
+            <span class="order-number">Orden: {{ group.orderNumber }}</span>
+          </div>
+          <div class="header-right">
+            <span class="badge" [ngClass]="getStatusBadgeClass(group.paymentStatus)">
+              {{ getStatusText(group.paymentStatus) }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Card Body -->
+        <div class="card-body">
+          <!-- Items List -->
+          <div class="items-list">
+            <h4>Items:</h4>
+            <div *ngFor="let item of group.items" class="item-group">
+              <!-- Evento principal -->
+              <div class="item-row main-item">
+                <span class="item-name">{{ item.eventName }}</span>
+                <span class="item-quantity">x{{ item.quantity }}</span>
+                <span class="item-price">${{ item.unitPrice | number:'1.2-2' }}</span>
+              </div>
+              
+              <!-- Consumiciones del evento -->
+              <div *ngIf="item.consumptions && item.consumptions.length > 0" class="consumptions-list">
+                <div *ngFor="let consumption of item.consumptions" class="consumption-row">
+                  <span class="consumption-indent">└─</span>
+                  <span class="consumption-name">{{ consumption.name }}</span>
+                  <span class="consumption-quantity">x{{ consumption.quantity }}</span>
+                  <span class="consumption-price">${{ consumption.subtotal | number:'1.2-2' }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Total -->
+          <div class="group-total">
+            <span class="total-label">Subtotal:</span>
+            <span class="total-amount">${{ group.amount | number:'1.2-2' }}</span>
+          </div>
+
+          <!-- Payment Actions -->
+          <div class="payment-actions" *ngIf="group.status !== 'PAID' && group.status !== 'COMPLETED'">
+            <!-- Generating Payments State -->
+            <div *ngIf="isGeneratingPayments && !group.initPoint" class="generating-payment">
+              <div class="spinner-small"></div>
+              <span>Generando sesión de pago...</span>
+            </div>
+
+            <!-- Payment Button -->
+            <div *ngIf="!isGeneratingPayments && group.initPoint" class="payment-buttons">
+              <button 
+                class="btn btn-primary btn-pay" 
+                (click)="openPaymentCheckout(group)"
+                [disabled]="!group.initPoint">
+                💳 Pagar con Stripe - ${{ group.amount | number:'1.2-2' }}
+              </button>
+            </div>
+            
+            <!-- No Payment Link Yet -->
+            <div *ngIf="!isGeneratingPayments && !group.initPoint" class="no-payment-link">
+              <p class="text-warning">⚠️ Esperando link de pago...</p>
+              <button class="btn btn-secondary" (click)="refreshPaymentStatus(group)">
+                🔄 Actualizar
+              </button>
+            </div>
+          </div>
+
+          <!-- Paid Status -->
+          <div class="paid-status" *ngIf="group.status === 'PAID' || group.status === 'COMPLETED'">
+            <p class="success-message">✅ Pago completado exitosamente</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Instructions -->
+    <div class="instructions">
+      <h3>📋 Instrucciones:</h3>
+      <ol>
+        <li>Haz clic en el botón "Pagar con Stripe" de cada organizador para completar el pago.</li>
+        <li>Serás redirigido a Stripe para realizar cada pago de forma segura con tarjeta.</li>
+        <li>Después de pagar, serás devuelto automáticamente a esta página.</li>
+        <li>Una vez completados todos los pagos, recibirás la confirmación de tu compra.</li>
+        <li>Tienes {{ formatTimeRemaining() }} para completar todos los pagos.</li>
+      </ol>
+    </div>
+
+    <!-- Actions -->
+    <div class="checkout-actions">
+      <button 
+        class="btn" 
+        [ngClass]="canAbandonSession ? 'btn-warning' : 'btn-secondary'"
+        (click)="handleCancelClick()">
+        {{ cancelButtonText }}
+      </button>
+    </div>
+  </div>
+</div>

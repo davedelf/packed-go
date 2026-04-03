@@ -1,0 +1,57 @@
+-- ==============================================
+-- PAYMENT SERVICE - DATABASE INITIALIZATION
+-- ==============================================
+-- EXAMPLE FILE: Copy to database-init.sql and configure with your credentials
+-- This file is safe to commit to Git (contains no real credentials)
+
+-- Create admin_credentials table (Hibernate will create it, but this is for reference)
+-- Uncomment if you need to manually create the table:
+
+/*
+CREATE TABLE IF NOT EXISTS admin_credentials (
+    id BIGSERIAL PRIMARY KEY,
+    admin_id BIGINT NOT NULL UNIQUE,
+    access_token VARCHAR(500) NOT NULL,
+    public_key VARCHAR(500),
+    is_active BOOLEAN NOT NULL DEFAULT true,
+    is_sandbox BOOLEAN NOT NULL DEFAULT false,
+    merchant_id VARCHAR(255),
+    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP
+);
+*/
+
+-- Insert your MercadoPago credentials
+-- IMPORTANT: Replace with your actual credentials from MercadoPago Developer Panel
+-- Get credentials from: https://www.mercadopago.com.ar/developers/panel
+
+INSERT INTO admin_credentials (
+    admin_id, 
+    access_token, 
+    public_key, 
+    is_active, 
+    is_sandbox, 
+    created_at, 
+    updated_at
+)
+VALUES (
+    1,
+    'YOUR_ACCESS_TOKEN_HERE',  -- Replace with your MercadoPago Access Token
+    'YOUR_PUBLIC_KEY_HERE',     -- Replace with your MercadoPago Public Key
+    true,
+    true,  -- Set to false for production
+    NOW(),
+    NOW()
+)
+ON CONFLICT (admin_id) DO UPDATE SET
+    access_token = EXCLUDED.access_token,
+    public_key = EXCLUDED.public_key,
+    is_sandbox = EXCLUDED.is_sandbox,
+    updated_at = NOW();
+
+-- ==============================================
+-- NOTES:
+-- - This script runs when the database container starts
+-- - For production: Set is_sandbox = false and use production credentials
+-- - Keep database-init.sql out of Git (it's in .gitignore)
+-- ==============================================

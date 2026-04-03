@@ -1,0 +1,82 @@
+<div class="verify-email-container">
+  <div class="verify-email-card">
+    <div class="icon-container">
+      <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="email-icon">
+        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+        <polyline points="22,6 12,13 2,6"></polyline>
+      </svg>
+    </div>
+
+    <h1>Verifica tu correo electrónico</h1>
+    
+    <p class="description">
+      Hemos enviado un correo de verificación a:
+    </p>
+    
+    <p class="email-address">{{ email }}</p>
+    
+    <p class="instruction">
+      Por favor, revisa tu bandeja de entrada y haz clic en el enlace de verificación para activar tu cuenta.
+    </p>
+
+    <!-- Success Message -->
+    <div *ngIf="resendSuccess" class="alert alert-success">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="20 6 9 17 4 12"></polyline>
+      </svg>
+      ¡Correo enviado exitosamente! Revisa tu bandeja de entrada.
+    </div>
+
+    <!-- Error Message -->
+    <div *ngIf="resendError" class="alert alert-error">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="8" x2="12" y2="12"></line>
+        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+      </svg>
+      {{ resendError }}
+    </div>
+
+    <!-- Resend Button -->
+    <div class="actions">
+      <button 
+        class="btn btn-primary" 
+        (click)="resendVerificationEmail()"
+        [disabled]="!canResend || resending">
+        <span *ngIf="!resending">
+          {{ canResend ? 'Reenviar correo' : 'Reenviar en ' + countdown + 's' }}
+        </span>
+        <span *ngIf="resending" class="spinner">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="spin">
+            <line x1="12" y1="2" x2="12" y2="6"></line>
+            <line x1="12" y1="18" x2="12" y2="22"></line>
+            <line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line>
+            <line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line>
+            <line x1="2" y1="12" x2="6" y2="12"></line>
+            <line x1="18" y1="12" x2="22" y2="12"></line>
+            <line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line>
+            <line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line>
+          </svg>
+          Enviando...
+        </span>
+      </button>
+
+      <button class="btn btn-secondary" (click)="checkVerificationStatus()">
+        Ya verifiqué mi correo
+      </button>
+    </div>
+
+    <div class="help-text">
+      <p>¿No recibiste el correo?</p>
+      <ul>
+        <li>Revisa tu carpeta de spam</li>
+        <li>Asegúrate de que el correo sea correcto</li>
+        <li>Espera unos minutos y vuelve a intentar</li>
+      </ul>
+    </div>
+
+    <div class="logout-link">
+      <a (click)="logout()" class="link">Cerrar sesión</a>
+    </div>
+  </div>
+</div>

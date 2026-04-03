@@ -1,0 +1,203 @@
+<div class="success-container">
+  <div *ngIf="isLoading" class="loading-state">
+    <div class="spinner"></div>
+    <p>Cargando información de tu compra...</p>
+  </div>
+
+  <!-- Verification Message -->
+  <div *ngIf="isVerifyingPayments" class="verification-banner">
+    <div class="spinner-small"></div>
+    <p>{{ verificationMessage }}</p>
+  </div>
+
+  <div *ngIf="!isLoading && (sessionData || tickets.length > 0)" class="success-content">
+    <!-- Success Icon -->
+    <div class="success-icon">
+      <div class="checkmark-circle">
+        <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+          <circle class="checkmark-circle-path" cx="26" cy="26" r="25" fill="none"/>
+          <path class="checkmark-check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Success Message -->
+    <div class="success-message">
+      <h1>¡Compra Completada! 🎉</h1>
+      <p class="subtitle">Tu pago ha sido procesado exitosamente</p>
+    </div>
+
+    <!-- Session Summary (Only for Multi-Order Session) -->
+    <div class="session-summary-card" *ngIf="sessionData">
+      <div class="summary-header">
+        <h2>Resumen de tu Compra</h2>
+        <span class="session-id">Sesión: {{ sessionId }}</span>
+      </div>
+
+      <div class="summary-body">
+        <div class="summary-item">
+          <span class="label">Total Pagado:</span>
+          <span class="value success">${{ sessionData.totalAmount | number:'1.2-2' }}</span>
+        </div>
+        <div class="summary-item">
+          <span class="label">Órdenes Completadas:</span>
+          <span class="value">{{ sessionData.paidGroups }} / {{ sessionData.totalGroups }}</span>
+        </div>
+        <div class="summary-item">
+          <span class="label">Estado:</span>
+          <span class="badge badge-success">{{ sessionData.sessionStatus }}</span>
+        </div>
+      </div>
+
+      <!-- Orders List -->
+      <div class="orders-list">
+        <h3>Tus Órdenes:</h3>
+        <div *ngFor="let group of sessionData.paymentGroups" class="order-card">
+          <div class="order-header">
+            <span class="order-number">{{ group.orderNumber }}</span>
+            <span class="badge badge-success" *ngIf="group.paymentStatus === 'PAID'">✓ Pagado</span>
+          </div>
+          <div class="order-items">
+            <div *ngFor="let item of group.items" class="order-item">
+              <span>{{ item.eventName }}</span>
+              <span>x{{ item.quantity }}</span>
+              <span>${{ item.subtotal | number:'1.2-2' }}</span>
+            </div>
+          </div>
+          <div class="order-total">
+            <strong>Total: ${{ group.amount | number:'1.2-2' }}</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- QR Codes Section -->
+    <div class="tickets-section" *ngIf="tickets.length > 0">
+      <div class="section-header">
+        <h3>🎫 Tus Entradas con Código QR</h3>
+        <button class="btn btn-download-all" (click)="downloadAllQRCodes()" 
+                *ngIf="hasTicketsWithQR()">
+          <i class="bi bi-download"></i>
+          Descargar Todos los QR
+        </button>
+      </div>
+
+      <div class="tickets-grid">
+        <div *ngFor="let ticket of tickets" class="ticket-card">
+          <div class="ticket-header">
+            <h4>{{ ticket.eventName }}</h4>
+            <span class="badge badge-success" *ngIf="ticket.active && !ticket.redeemed">Activo</span>
+            <span class="badge badge-secondary" *ngIf="ticket.redeemed">Canjeado</span>
+          </div>
+
+          <div class="ticket-body">
+            <div class="qr-container" *ngIf="ticket.qrCode">
+              <img [src]="ticket.qrCode" [alt]="'QR Code for ' + ticket.eventName" class="qr-image">
+            </div>
+
+            <div class="ticket-info">
+              <div class="info-row">
+                <span class="label">Código:</span>
+                <span class="value">{{ ticket.passCode ? ticket.passCode.slice(-8) : 'N/A' }}</span>
+              </div>
+              <div class="info-row">
+                <span class="label">Fecha:</span>
+                <span class="value">{{ ticket.eventDate | date:'dd/MM/yyyy HH:mm' }}</span>
+              </div>
+              <div class="info-row">
+                <span class="label">Ubicación:</span>
+                <span 
+                  class="value location-link" 
+                  (click)="openTicketLocation(ticket)">
+                  {{ ticket.eventLocationName || ticket.eventLocation }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Consumptions -->
+            <div class="consumptions-section" *ngIf="ticket.ticketConsumption?.ticketDetails?.length">
+              <h5>Consumiciones incluidas:</h5>
+              <ul class="consumptions-list">
+                <li *ngFor="let detail of ticket.ticketConsumption.ticketDetails">
+                  <span>{{ detail.consumptionName }}</span>
+                  <span class="quantity">x{{ detail.quantity }}</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="ticket-footer">
+            <button class="btn btn-sm btn-primary" (click)="downloadTicketQR(ticket)" 
+                    *ngIf="ticket.qrCode">
+              <i class="bi bi-download"></i>
+              Descargar QR
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading Tickets -->
+    <div class="tickets-loading" *ngIf="isLoadingTickets">
+      <div class="spinner-small"></div>
+      <p>Cargando tus entradas...</p>
+    </div>
+
+    <!-- Next Steps -->
+    <div class="next-steps">
+      <h3>¿Qué sigue?</h3>
+      <div class="steps-grid">
+        <div class="step-card">
+          <div class="step-icon">📧</div>
+          <h4>Confirmación por Email</h4>
+          <p>Recibirás un correo con los detalles de tu compra y tus entradas.</p>
+        </div>
+        <div class="step-card">
+          <div class="step-icon">🎫</div>
+          <h4>Entradas Digitales</h4>
+          <p>Tus entradas estarán disponibles en la sección "Mis Entradas".</p>
+        </div>
+        <div class="step-card">
+          <div class="step-icon">🔔</div>
+          <h4>Notificaciones</h4>
+          <p>Te notificaremos sobre actualizaciones de tus eventos.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="success-actions">
+      <button class="btn btn-primary" (click)="goToTickets()">
+        <i class="bi bi-ticket-perforated"></i>
+        Ver Mis Entradas
+      </button>
+      <button class="btn btn-secondary" (click)="goToDashboard()">
+        <i class="bi bi-house"></i>
+        Volver al Inicio
+      </button>
+    </div>
+
+    <!-- Share Section -->
+    <div class="share-section">
+      <p>¡Comparte tu emoción!</p>
+      <div class="share-buttons">
+        <button class="btn-share btn-share-twitter" title="Compartir en Twitter">
+          <i class="bi bi-twitter"></i>
+        </button>
+        <button class="btn-share btn-share-facebook" title="Compartir en Facebook">
+          <i class="bi bi-facebook"></i>
+        </button>
+        <button class="btn-share btn-share-whatsapp" title="Compartir en WhatsApp">
+          <i class="bi bi-whatsapp"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="!isLoading && !sessionData && tickets.length === 0" class="error-message">
+    <h2>No se pudo cargar la información de la compra</h2>
+    <button class="btn btn-primary" (click)="goToDashboard()">
+      Volver al Inicio
+    </button>
+  </div>
+</div>

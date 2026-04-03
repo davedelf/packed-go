@@ -1,0 +1,853 @@
+<div class="management-container">
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <button class="btn-back" (click)="goBack()">
+        <i class="bi bi-arrow-left"></i>
+      </button>
+      <i class="bi bi-calendar-event"></i>
+      <span>Gestión de Eventos</span>
+    </div>
+    <div class="navbar-user">
+      <button class="btn btn-logout" (click)="logout()">
+        <i class="bi bi-box-arrow-right"></i>
+        Cerrar Sesión
+      </button>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="management-content">
+    
+    <!-- Success/Error Alerts -->
+    <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show" role="alert">
+      <i class="bi bi-check-circle-fill me-2"></i>
+      {{ successMessage }}
+      <button type="button" class="btn-close" (click)="successMessage = ''"></button>
+    </div>
+
+    <div *ngIf="errorMessage && !showModal" class="alert alert-danger alert-dismissible fade show" role="alert">
+      <i class="bi bi-exclamation-triangle-fill me-2"></i>
+      {{ errorMessage }}
+      <button type="button" class="btn-close" (click)="errorMessage = ''"></button>
+    </div>
+
+    <!-- Header Section -->
+    <div class="header-section">
+      <div class="header-left">
+        <h1>Eventos y Categorías</h1>
+        <p>Gestiona todos los eventos y sus categorías</p>
+      </div>
+    </div>
+
+    <!-- Tabs Navigation -->
+    <div class="tabs-container">
+      <button 
+        class="tab-button" 
+        [class.active]="activeTab === 'events'" 
+        (click)="switchTab('events')">
+        <i class="bi bi-calendar-event"></i>
+        Eventos
+      </button>
+      <button 
+        class="tab-button" 
+        [class.active]="activeTab === 'categories'" 
+        (click)="switchTab('categories')">
+        <i class="bi bi-tags"></i>
+        Categorías de Eventos
+      </button>
+    </div>
+
+    <!-- EVENTS TAB CONTENT -->
+    <div *ngIf="activeTab === 'events'" class="tab-content">
+      <!-- Create Button for Events -->
+      <div class="create-button-container">
+        <button class="btn btn-create" (click)="openCreateModal()">
+          <i class="bi bi-plus-circle"></i>
+          Crear Evento
+        </button>
+      </div>
+
+      <!-- Search Bar & Category Filter -->
+      <div class="search-section">
+        <div class="filters-container">
+          <div class="search-wrapper">
+            <i class="bi bi-search"></i>
+            <input 
+              type="text" 
+              class="form-control search-input" 
+              placeholder="Buscar eventos por nombre o descripción..."
+              [(ngModel)]="searchTerm"
+              (input)="searchEvents()"
+            />
+          </div>
+          <div class="category-filter">
+            <select 
+              class="form-control filter-select"
+              [(ngModel)]="selectedCategoryFilter"
+              (change)="filterByCategory(selectedCategoryFilter)"
+            >
+              <option [ngValue]="null">🏷️ Todas las categorías</option>
+              <option *ngFor="let category of categories" [ngValue]="category.id">
+                {{ category.name }}
+              </option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Loading Spinner -->
+      <div *ngIf="isLoading" class="loading-container">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Cargando...</span>
+        </div>
+        <p>Cargando eventos...</p>
+      </div>
+
+      <!-- Events Table -->
+      <div *ngIf="!isLoading" class="table-container">
+        <div *ngIf="filteredEvents.length === 0" class="no-results">
+          <i class="bi bi-calendar-x"></i>
+          <h3>No se encontraron eventos</h3>
+          <p *ngIf="searchTerm || selectedCategoryFilter">Intenta con otros términos de búsqueda o filtros</p>
+          <p *ngIf="!searchTerm && !selectedCategoryFilter">Aún no hay eventos creados. ¡Crea el primero!</p>
+        </div>
+
+      <!-- Info de resultados -->
+      <div class="results-info" *ngIf="filteredEvents.length > 0">
+        <span>Mostrando {{ paginatedEvents.length }} de {{ filteredEvents.length }} eventos</span>
+      </div>
+
+      <table *ngIf="filteredEvents.length > 0" class="table">
+        <thead>
+          <tr>
+            <th>Imagen</th>
+            <th>Nombre</th>
+            <th>Fecha de Inicio</th>
+            <th>Fecha de Finalización</th>
+            <th>Lugar</th>
+            <th>Categoría</th>
+            <th>Capacidad</th>
+            <th>Precio</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let event of paginatedEvents">
+            <td>
+              <img 
+                *ngIf="event.hasImageData || event.imageUrl"
+                [src]="getEventImageSrc(event)" 
+                [alt]="event.name"
+                class="event-thumbnail"
+                (error)="handleImageError(event)"
+              />
+              <i 
+                *ngIf="!event.hasImageData && !event.imageUrl"
+                class="bi bi-image text-muted" 
+                style="font-size: 2rem;"
+                [title]="'Sin imagen'"
+              ></i>
+            </td>
+            <td>
+              <div class="event-name-info">
+                <strong>{{ event.name }}</strong>
+                <button class="btn-view-description" (click)="viewDetails(event)" title="Ver detalles del evento">
+                  <i class="bi bi-info-circle"></i>
+                  Ver Detalles
+                </button>
+              </div>
+            </td>
+            <td>
+              <div class="datetime-info">
+                <i class="bi bi-calendar-check text-success"></i>
+                <div>
+                  <div>{{ event.startTime | date: 'dd/MM/yyyy' }}</div>
+                  <small class="text-muted">{{ event.startTime | date: 'HH:mm' }} hs</small>
+                </div>
+              </div>
+            </td>
+            <td>
+              <div class="datetime-info">
+                <i class="bi bi-calendar-x text-danger"></i>
+                <div>
+                  <div>{{ event.endTime | date: 'dd/MM/yyyy' }}</div>
+                  <small class="text-muted">{{ event.endTime | date: 'HH:mm' }} hs</small>
+                </div>
+              </div>
+            </td>
+            <td>
+              <div class="location-info" (click)="openMapModal(event)" title="Click para ver en el mapa">
+                <i class="bi bi-geo-alt-fill text-primary"></i>
+                <small>{{ getEventAddress(event) }}</small>
+              </div>
+            </td>
+            <td>
+              <span class="badge badge-category">{{ getCategoryName(event.categoryId) }}</span>
+            </td>
+            <td>
+              <div class="capacity-info">
+                <span>{{ event.availablePasses || event.maxCapacity }} / {{ event.maxCapacity }}</span>
+                <small class="text-muted">disponibles</small>
+              </div>
+            </td>
+            <td>
+              <strong class="price">{{ event.basePrice | currency: 'USD':'symbol':'1.2-2' }}</strong>
+            </td>
+            <td>
+              <span [class]="event.active ? 'badge badge-active' : 'badge badge-inactive'">
+                {{ event.active ? 'Activo' : 'Inactivo' }}
+              </span>
+            </td>
+            <td>
+              <div class="action-buttons">
+                <button 
+                  class="btn-action btn-edit" 
+                  (click)="openEditModal(event)"
+                  title="Editar"
+                >
+                  <i class="bi bi-pencil"></i>
+                </button>
+                <button 
+                  class="btn-action btn-delete" 
+                  (click)="deleteEvent(event.id!, event.name)"
+                  title="Eliminar"
+                >
+                  <i class="bi bi-trash"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Paginación -->
+      <div class="pagination" *ngIf="totalPages > 1 && filteredEvents.length > 0">
+        <button 
+          class="page-btn"
+          [disabled]="currentPage === 1"
+          (click)="goToPage(currentPage - 1)"
+        >
+          <i class="bi bi-chevron-left"></i>
+        </button>
+
+        <button 
+          *ngFor="let page of pageNumbers"
+          class="page-btn"
+          [class.active]="page === currentPage"
+          [disabled]="page === -1"
+          (click)="page !== -1 && goToPage(page)"
+        >
+          {{ page === -1 ? '...' : page }}
+        </button>
+
+        <button 
+          class="page-btn"
+          [disabled]="currentPage === totalPages"
+          (click)="goToPage(currentPage + 1)"
+        >
+          <i class="bi bi-chevron-right"></i>
+        </button>
+      </div>
+    </div>
+    </div>
+    <!-- END: EVENTS TAB -->
+
+    <!-- CATEGORIES TAB CONTENT -->
+    <div *ngIf="activeTab === 'categories'" class="tab-content">
+      <!-- Create Button for Categories -->
+      <div class="create-button-container">
+        <button class="btn btn-create" (click)="openCreateCategoryModal()">
+          <i class="bi bi-plus-circle"></i>
+          Crear Categoría
+        </button>
+      </div>
+
+      <!-- Search Bar for Categories -->
+      <div class="search-section">
+        <div class="search-wrapper">
+          <i class="bi bi-search"></i>
+          <input 
+            type="text" 
+            class="form-control search-input" 
+            placeholder="Buscar categorías por nombre..."
+            [(ngModel)]="categorySearchTerm"
+            (input)="searchCategories()"
+          />
+        </div>
+      </div>
+
+      <!-- Categories Grid -->
+      <div class="categories-grid">
+        <div *ngIf="filteredCategories.length === 0" class="no-results">
+          <i class="bi bi-folder-x"></i>
+          <h3>No se encontraron categorías</h3>
+          <p *ngIf="categorySearchTerm">Intenta con otros términos de búsqueda</p>
+          <p *ngIf="!categorySearchTerm">Aún no hay categorías creadas. ¡Crea la primera!</p>
+        </div>
+
+        <div 
+          *ngFor="let category of filteredCategories" 
+          class="category-card"
+          [class.inactive]="!category.active"
+        >
+          <div class="category-header">
+            <h3>{{ category.name }}</h3>
+            <div class="category-actions">
+              <button 
+                class="btn-icon btn-toggle"
+                (click)="toggleCategoryStatus(category)"
+                [title]="category.active ? 'Desactivar' : 'Activar'"
+              >
+                <i [class]="category.active ? 'bi bi-toggle-on' : 'bi bi-toggle-off'"></i>
+              </button>
+              <button 
+                class="btn-icon btn-edit"
+                (click)="openEditCategoryModal(category)"
+                title="Editar"
+              >
+                <i class="bi bi-pencil"></i>
+              </button>
+              <button 
+                class="btn-icon btn-delete"
+                (click)="deleteCategory(category.id!, category.name)"
+                title="Eliminar"
+              >
+                <i class="bi bi-trash"></i>
+              </button>
+            </div>
+          </div>
+          
+          <p class="category-description" *ngIf="category.description">
+            {{ category.description }}
+          </p>
+          
+          <div class="category-status">
+            <span class="badge" [class.badge-active]="category.active" [class.badge-inactive]="!category.active">
+              {{ category.active ? 'Activa' : 'Inactiva' }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- END: CATEGORIES TAB -->
+
+  </div>
+</div>
+
+<!-- Modal para Crear/Editar Evento -->
+<div *ngIf="showModal" class="modal-overlay">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>
+        <i [class]="isEditMode ? 'bi bi-pencil-square' : 'bi bi-plus-circle'"></i>
+        {{ isEditMode ? 'Editar Evento' : 'Crear Nuevo Evento' }}
+      </h2>
+      <button class="btn-close-modal" (click)="closeModal()">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <!-- Modal Alerts -->
+    <div *ngIf="successMessage" class="alert alert-success" role="alert">
+      <i class="bi bi-check-circle-fill me-2"></i>
+      {{ successMessage }}
+    </div>
+
+    <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show" role="alert">
+      <i class="bi bi-exclamation-triangle-fill me-2"></i>
+      {{ errorMessage }}
+      <button type="button" class="btn-close" (click)="errorMessage = ''"></button>
+    </div>
+
+    <form [formGroup]="eventForm" (ngSubmit)="onSubmit()" class="modal-form">
+      
+      <!-- Event Name -->
+      <div class="form-group">
+        <label for="name">
+          <i class="bi bi-card-heading"></i>
+          Nombre del Evento *
+        </label>
+        <input 
+          type="text" 
+          id="name"
+          formControlName="name"
+          class="form-control"
+          [class.is-invalid]="name?.invalid && name?.touched"
+          [class.is-valid]="name?.valid && name?.touched"
+          placeholder="Ej: Concierto de Rock 2025"
+        />
+        <div class="invalid-feedback" *ngIf="name?.touched && name?.invalid">
+          <span *ngIf="name?.errors?.['required']">El nombre es requerido</span>
+          <span *ngIf="name?.errors?.['minlength']">Mínimo 3 caracteres</span>
+          <span *ngIf="name?.errors?.['maxlength']">Máximo 200 caracteres</span>
+        </div>
+      </div>
+
+      <!-- Description -->
+      <div class="form-group">
+        <label for="description">
+          <i class="bi bi-text-paragraph"></i>
+          Descripción *
+        </label>
+        <textarea 
+          id="description"
+          formControlName="description"
+          class="form-control"
+          [class.is-invalid]="description?.invalid && description?.touched"
+          [class.is-valid]="description?.valid && description?.touched"
+          rows="4"
+          placeholder="Describe el evento en detalle..."
+        ></textarea>
+        <div class="invalid-feedback" *ngIf="description?.touched && description?.invalid">
+          <span *ngIf="description?.errors?.['required']">La descripción es requerida</span>
+          <span *ngIf="description?.errors?.['minlength']">Mínimo 10 caracteres</span>
+        </div>
+      </div>
+
+      <!-- Start and End DateTime -->
+      <div class="form-row">
+        <div class="form-group">
+          <label for="startTime">
+            <i class="bi bi-calendar-check"></i>
+            Fecha y Hora de Inicio *
+          </label>
+          <input 
+            type="datetime-local" 
+            id="startTime"
+            formControlName="startTime"
+            class="form-control"
+            [class.is-invalid]="startTime?.invalid && startTime?.touched"
+            [class.is-valid]="startTime?.valid && startTime?.touched"
+          />
+          <div class="invalid-feedback" *ngIf="startTime?.touched && startTime?.invalid">
+            <span *ngIf="startTime?.errors?.['required']">La fecha y hora de inicio es requerida</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="endTime">
+            <i class="bi bi-calendar-x"></i>
+            Fecha y Hora de Finalización *
+          </label>
+          <input 
+            type="datetime-local" 
+            id="endTime"
+            formControlName="endTime"
+            class="form-control"
+            [class.is-invalid]="(endTime?.invalid && endTime?.touched) || (startTime?.value && endTime?.value && endTime?.value <= startTime?.value)"
+            [class.is-valid]="endTime?.valid && endTime?.touched && !(startTime?.value && endTime?.value && endTime?.value <= startTime?.value)"
+          />
+          <div class="invalid-feedback" *ngIf="(endTime?.touched && endTime?.invalid) || (startTime?.value && endTime?.value && endTime?.value <= startTime?.value)">
+            <span *ngIf="endTime?.errors?.['required']">La fecha y hora de finalización es requerida</span>
+            <span *ngIf="startTime?.value && endTime?.value && endTime?.value <= startTime?.value">La fecha y hora de finalización debe ser mayor que la de inicio</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Location Picker with Google Maps -->
+      <div class="form-group full-width">
+        <label>
+          <i class="bi bi-geo-alt"></i>
+          Ubicación del Evento *
+        </label>
+        <app-location-picker
+          [lat]="eventForm.get('lat')?.value || -34.603722"
+          [lng]="eventForm.get('lng')?.value || -58.381592"
+          (locationChange)="onLocationChange($event)"
+        ></app-location-picker>
+        <div class="form-validation-error" *ngIf="(lat?.touched || lng?.touched) && (lat?.invalid || lng?.invalid)">
+          <i class="bi bi-exclamation-circle"></i>
+          Debes seleccionar una ubicación válida en el mapa
+        </div>
+      </div>
+
+      <!-- Location Name -->
+      <div class="form-group full-width">
+        <label for="locationName">
+          <i class="bi bi-building"></i>
+          Nombre del Lugar
+        </label>
+        <input 
+          type="text" 
+          id="locationName"
+          formControlName="locationName"
+          class="form-control"
+          placeholder="Ej: Espacio Quality, La Estación, etc."
+          [class.is-valid]="locationName?.valid && locationName?.touched"
+        />
+        <small class="form-text text-muted">
+          El nombre específico del lugar donde se realizará el evento (opcional)
+        </small>
+      </div>
+
+      <!-- Capacity and Price -->
+      <div class="form-row">
+        <div class="form-group">
+          <label for="maxCapacity">
+            <i class="bi bi-people"></i>
+            Capacidad Máxima *
+          </label>
+          <input 
+            type="number" 
+            id="maxCapacity"
+            formControlName="maxCapacity"
+            class="form-control"
+            [class.is-invalid]="maxCapacity?.invalid && maxCapacity?.touched"
+            [class.is-valid]="maxCapacity?.valid && maxCapacity?.touched"
+            placeholder="1000"
+            min="1"
+          />
+          <div class="invalid-feedback" *ngIf="maxCapacity?.touched && maxCapacity?.invalid">
+            <span *ngIf="maxCapacity?.errors?.['required']">La capacidad es requerida</span>
+            <span *ngIf="maxCapacity?.errors?.['min']">Mínimo 1 persona</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="basePrice">
+            <i class="bi bi-currency-dollar"></i>
+            Precio Base *
+          </label>
+          <input 
+            type="number" 
+            id="basePrice"
+            formControlName="basePrice"
+            class="form-control"
+            [class.is-invalid]="basePrice?.invalid && basePrice?.touched"
+            [class.is-valid]="basePrice?.valid && basePrice?.touched"
+            placeholder="50.00"
+            min="0"
+            step="0.01"
+          />
+          <div class="invalid-feedback" *ngIf="basePrice?.touched && basePrice?.invalid">
+            <span *ngIf="basePrice?.errors?.['required']">El precio es requerido</span>
+            <span *ngIf="basePrice?.errors?.['min']">Mínimo $0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Category -->
+      <div class="form-group">
+        <label for="categoryId">
+          <i class="bi bi-tags"></i>
+          Categoría *
+        </label>
+        <select 
+          id="categoryId"
+          formControlName="categoryId"
+          class="form-select"
+          [class.is-invalid]="categoryId?.invalid && categoryId?.touched"
+          [class.is-valid]="categoryId?.valid && categoryId?.touched"
+        >
+          <option value="" disabled>Selecciona una categoría</option>
+          <option *ngFor="let category of categories" [value]="category.id">
+            {{ category.name }}
+          </option>
+        </select>
+        <div class="invalid-feedback" *ngIf="categoryId?.touched && categoryId?.invalid">
+          <span *ngIf="categoryId?.errors?.['required']">La categoría es requerida</span>
+        </div>
+      </div>
+
+      <!-- Consumptions Available -->
+      <div class="form-group" *ngIf="consumptions.length > 0">
+        <label>
+          <i class="bi bi-cup-straw"></i>
+          Consumos Disponibles (opcional)
+        </label>
+
+        <!-- Selected Consumptions -->
+        <div *ngIf="getSelectedConsumptionsList().length > 0" class="consumptions-section mb-3">
+          <h6 class="text-success mb-2">
+            <i class="bi bi-check-circle-fill"></i> Seleccionadas ({{ getSelectedConsumptionsList().length }})
+          </h6>
+          <div class="consumptions-selection">
+            <div 
+              *ngFor="let consumption of getSelectedConsumptionsList()" 
+              class="consumption-item selected"
+              (click)="toggleConsumptionSelection(consumption.id!)"
+            >
+              <div class="consumption-checkbox">
+                <input 
+                  type="checkbox" 
+                  [checked]="true"
+                  (change)="toggleConsumptionSelection(consumption.id!)"
+                >
+              </div>
+              <div class="consumption-info">
+                <div class="consumption-name">{{ consumption.name }}</div>
+                <div class="consumption-price">${{ consumption.price }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Available Consumptions -->
+        <div *ngIf="getAvailableConsumptionsList().length > 0" class="consumptions-section">
+          <h6 class="text-muted mb-2">
+            <i class="bi bi-circle"></i> Disponibles ({{ getAvailableConsumptionsList().length }})
+          </h6>
+          <div class="consumptions-selection">
+            <div 
+              *ngFor="let consumption of getAvailableConsumptionsList()" 
+              class="consumption-item"
+              (click)="toggleConsumptionSelection(consumption.id!)"
+            >
+              <div class="consumption-checkbox">
+                <input 
+                  type="checkbox" 
+                  [checked]="false"
+                  (change)="toggleConsumptionSelection(consumption.id!)"
+                >
+              </div>
+              <div class="consumption-info">
+                <div class="consumption-name">{{ consumption.name }}</div>
+                <div class="consumption-price">${{ consumption.price }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <small class="form-text text-muted">
+          Haz clic en las consumiciones para seleccionarlas o deseleccionarlas
+        </small>
+      </div>
+
+      <!-- Image Upload Section -->
+      <div class="form-group">
+        <label>
+          <i class="bi bi-image"></i>
+          Imagen del Evento
+        </label>
+        
+        <div class="alert alert-info mb-3">
+          <i class="bi bi-info-circle"></i> 
+          Puedes proporcionar <strong>ambas opciones</strong>. 
+          Si cargas un archivo local, ese se mostrará con prioridad. Si no, se usará la URL externa.
+        </div>
+
+        <!-- Subir Archivo Local -->
+        <div class="image-upload-section mb-3">
+          <label class="form-label">
+            <i class="bi bi-upload"></i> 
+            <strong>Opción 1:</strong> Subir Archivo Local
+          </label>
+          <div class="file-input-wrapper">
+            <input 
+              type="file" 
+              id="imageFile"
+              (change)="onImageFileSelected($event)"
+              accept="image/png,image/jpeg,image/jpg"
+              class="file-input"
+              #fileInput
+            />
+            <label for="imageFile" class="file-input-label">
+              <i class="bi bi-cloud-upload"></i>
+              <span *ngIf="!selectedImageFile">Seleccionar archivo</span>
+              <span *ngIf="selectedImageFile">{{ selectedImageFile.name }}</span>
+            </label>
+            <button 
+              *ngIf="selectedImageFile" 
+              type="button" 
+              class="btn btn-sm btn-danger"
+              (click)="clearImageFile()"
+            >
+              <i class="bi bi-x"></i>
+            </button>
+          </div>
+          <small class="form-text text-muted">
+            <i class="bi bi-info-circle"></i> PNG, JPG o JPEG. Máximo 5MB.
+          </small>
+          
+          <!-- Preview de la imagen seleccionada o existente -->
+          <div *ngIf="imagePreviewUrl" class="image-preview mt-2">
+            <div *ngIf="isEditMode && !selectedImageFile" class="alert alert-success mb-2">
+              <i class="bi bi-check-circle"></i> Imagen actual del evento
+            </div>
+            <img [src]="imagePreviewUrl" alt="Vista previa">
+          </div>
+        </div>
+
+        <!-- URL Externa -->
+        <div class="image-url-section">
+          <label class="form-label">
+            <i class="bi bi-link-45deg"></i> 
+            <strong>Opción 2:</strong> URL de Imagen Externa
+          </label>
+          <input 
+            type="url" 
+            id="imageUrl"
+            formControlName="imageUrl"
+            class="form-control"
+            placeholder="https://ejemplo.com/imagen.jpg"
+          />
+          <small class="form-text text-muted">
+            <i class="bi bi-info-circle"></i> Se usará como respaldo si no hay archivo local.
+          </small>
+        </div>
+      </div>
+
+      <!-- Modal Actions -->
+      <div class="modal-actions">
+        <button 
+          type="button" 
+          class="btn btn-secondary" 
+          (click)="closeModal()"
+          [disabled]="isSubmitting"
+        >
+          Cancelar
+        </button>
+        <button 
+          type="submit" 
+          class="btn btn-primary"
+          [disabled]="isSubmitting"
+        >
+          <span *ngIf="!isSubmitting">
+            <i [class]="isEditMode ? 'bi bi-check-circle' : 'bi bi-plus-circle'"></i>
+            {{ isEditMode ? 'Actualizar' : 'Crear' }} Evento
+          </span>
+          <span *ngIf="isSubmitting">
+            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+            Guardando...
+          </span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Map Modal -->
+<div class="map-modal-overlay" *ngIf="showMapModal">
+  <div class="map-modal-content">
+    <div class="map-modal-header">
+      <div>
+        <h3><i class="bi bi-geo-alt-fill"></i> {{ mapEventLocation?.name }}</h3>
+        <p class="text-muted">{{ mapEventLocation?.address }}</p>
+      </div>
+      <button class="btn-close-map" (click)="closeMapModal()">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+    <div class="map-modal-body">
+      <iframe
+        *ngIf="mapEventLocation"
+        [src]="'https://www.openstreetmap.org/export/embed.html?bbox=' + 
+               (mapEventLocation.lng - 0.01) + ',' + 
+               (mapEventLocation.lat - 0.01) + ',' + 
+               (mapEventLocation.lng + 0.01) + ',' + 
+               (mapEventLocation.lat + 0.01) + 
+               '&layer=mapnik&marker=' + 
+               mapEventLocation.lat + ',' + mapEventLocation.lng | safe: 'resourceUrl'"
+        width="100%"
+        height="100%"
+        frameborder="0"
+        style="border: 0"
+      ></iframe>
+    </div>
+    <div class="map-modal-footer">
+      <a 
+        [href]="'https://www.google.com/maps/search/?api=1&query=' + mapEventLocation?.lat + ',' + mapEventLocation?.lng"
+        target="_blank"
+        class="btn btn-primary"
+      >
+        <i class="bi bi-box-arrow-up-right"></i>
+        Abrir en Google Maps
+      </a>
+      <button class="btn btn-secondary" (click)="closeMapModal()">
+        Cerrar
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para Crear/Editar Categoría -->
+<div *ngIf="showCategoryModal" class="modal-overlay">
+  <div class="modal-content modal-sm">
+    <div class="modal-header">
+      <h2>
+        <i [class]="isCategoryEditMode ? 'bi bi-pencil' : 'bi bi-plus-circle'"></i>
+        {{ isCategoryEditMode ? 'Editar' : 'Crear' }} Categoría
+      </h2>
+      <button class="btn-close-modal" (click)="closeCategoryModal()">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <!-- Error Alert in Modal -->
+    <div *ngIf="errorMessage" class="alert alert-danger" role="alert">
+      <i class="bi bi-exclamation-triangle-fill me-2"></i>
+      {{ errorMessage }}
+    </div>
+
+    <!-- Success Alert in Modal -->
+    <div *ngIf="successMessage" class="alert alert-success" role="alert">
+      <i class="bi bi-check-circle-fill me-2"></i>
+      {{ successMessage }}
+    </div>
+
+    <form (ngSubmit)="onCategorySubmit()">
+      <!-- Nombre -->
+      <div class="form-group">
+        <label for="categoryName">
+          <i class="bi bi-tag"></i>
+          Nombre de la Categoría *
+        </label>
+        <input 
+          type="text" 
+          id="categoryName"
+          [(ngModel)]="categoryForm.name"
+          name="categoryName"
+          class="form-control"
+          placeholder="Ej: Música, Deportes, Arte..."
+          required
+          maxlength="100"
+        />
+      </div>
+
+      <!-- Descripción -->
+      <div class="form-group">
+        <label for="categoryDescription">
+          <i class="bi bi-text-left"></i>
+          Descripción
+        </label>
+        <textarea 
+          id="categoryDescription"
+          [(ngModel)]="categoryForm.description"
+          name="categoryDescription"
+          class="form-control"
+          rows="3"
+          placeholder="Descripción de la categoría (opcional)"
+          maxlength="500"
+        ></textarea>
+      </div>
+
+      <!-- Modal Actions -->
+      <div class="modal-actions">
+        <button 
+          type="button" 
+          class="btn btn-secondary" 
+          (click)="closeCategoryModal()"
+          [disabled]="isSubmitting"
+        >
+          Cancelar
+        </button>
+        <button 
+          type="submit" 
+          class="btn btn-primary"
+          [disabled]="isSubmitting"
+        >
+          <span *ngIf="!isSubmitting">
+            <i [class]="isCategoryEditMode ? 'bi bi-check-circle' : 'bi bi-plus-circle'"></i>
+            {{ isCategoryEditMode ? 'Actualizar' : 'Crear' }} Categoría
+          </span>
+          <span *ngIf="isSubmitting">
+            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+            Guardando...
+          </span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

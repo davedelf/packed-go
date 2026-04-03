@@ -1,0 +1,667 @@
+<div class="dashboard-container">
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <i class="bi bi-box-seam"></i>
+      <span>PackedGo</span>
+    </div>
+    
+    <!-- Tabs Navigation -->
+    <div class="navbar-tabs">
+      <button 
+        class="tab-button" 
+        [class.active]="activeTab === 'events'"
+        (click)="switchTab('events')">
+        <i class="bi bi-calendar-event"></i>
+        <span>Eventos</span>
+      </button>
+      <button 
+        class="tab-button" 
+        [class.active]="activeTab === 'cart'"
+        (click)="switchTab('cart')">
+        <i class="bi bi-cart"></i>
+        <span>Mi Carrito</span>
+        <span class="badge" *ngIf="cartCount > 0">{{ cartCount }}</span>
+      </button>
+      <button 
+        class="tab-button" 
+        [class.active]="activeTab === 'tickets'"
+        (click)="switchTab('tickets')">
+        <i class="bi bi-ticket-perforated"></i>
+        <span>Mis Entradas</span>
+      </button>
+      <button 
+        class="tab-button" 
+        [class.active]="activeTab === 'profile'"
+        (click)="switchTab('profile')">
+        <i class="bi bi-person"></i>
+        <span>Mi Perfil</span>
+      </button>
+    </div>
+
+    <div class="navbar-user">
+      <div class="user-info">
+        <i class="bi bi-person-circle"></i>
+        <span>{{ currentUser?.username || 'Usuario' }}</span>
+      </div>
+      <button class="btn btn-logout" (click)="logout()">
+        <i class="bi bi-box-arrow-right"></i>
+        Cerrar Sesión
+      </button>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="dashboard-content">
+    
+    <!-- ==================== EVENTS TAB ==================== -->
+    <div *ngIf="activeTab === 'events'" class="tab-content">
+      <div class="hero-section">
+        <h1>¡Bienvenido, {{ currentUser?.username || 'Usuario' }}!</h1>
+        <p>Descubre y participa en los mejores eventos</p>
+        
+        <div class="filters-container">
+          <div class="search-wrapper">
+            <i class="bi bi-search"></i>
+            <input 
+              type="text" 
+              class="form-control search-input" 
+              placeholder="Buscar eventos por nombre o descripción..."
+              [(ngModel)]="searchTerm"
+              (input)="searchEvents()"
+            />
+          </div>
+          
+          <div class="category-filter">
+            <select 
+              class="filter-select"
+              [(ngModel)]="selectedCategoryFilter"
+              (change)="filterByCategory()"
+            >
+              <option [ngValue]="null">🏷️ Todas las categorías</option>
+              <option *ngFor="let category of categories" [ngValue]="category.id">
+                {{ category.name }}
+              </option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="isLoadingEvents" class="loading-container">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Cargando...</span>
+        </div>
+        <p>Cargando eventos...</p>
+      </div>
+
+      <div *ngIf="!isLoadingEvents" class="events-section">
+        <div *ngIf="filteredEvents.length === 0" class="no-results">
+          <i class="bi bi-calendar-x"></i>
+          <h3>No se encontraron eventos</h3>
+          <p>Intenta con otros términos de búsqueda o filtros</p>
+        </div>
+
+        <div class="events-grid" *ngIf="paginatedEvents.length > 0">
+          <div 
+            *ngFor="let event of paginatedEvents" 
+            class="event-card"
+            (click)="viewEventDetails(event.id!)"
+          >
+            <div class="event-image">
+              <img [src]="event.imageUrl || 'https://via.placeholder.com/400x250?text=Evento'" [alt]="event.name" />
+            </div>
+
+            <div class="event-content">
+              <h3>{{ event.name }}</h3>
+              <p class="event-description">{{ event.description }}</p>
+              
+              <div class="event-meta">
+                <div class="meta-item">
+                  <i class="bi bi-geo-alt-fill"></i>
+                  <span class="location-text">{{ getEventAddress(event) }}</span>
+                </div>
+                <div class="meta-item">
+                  <i class="bi bi-clock-fill"></i>
+                  <span>{{ event.eventDate | date: 'dd/MM/yyyy HH:mm' }}</span>
+                </div>
+              </div>
+              
+              <div class="event-details">
+                <div class="detail-item">
+                  <i class="bi bi-people"></i>
+                  <span>{{ event.availablePasses || event.maxCapacity }} disponibles</span>
+                </div>
+                <div class="detail-item">
+                  <i class="bi bi-currency-dollar"></i>
+                  <span>{{ event.basePrice | currency: 'USD':'symbol':'1.2-2' }}</span>
+                </div>
+              </div>
+
+              <button class="btn btn-view-details">
+                Ver Detalles
+                <i class="bi bi-arrow-right"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pagination Controls -->
+        <div class="pagination" *ngIf="totalPages > 1">
+          <button 
+            class="page-btn"
+            [disabled]="currentPage === 1"
+            (click)="goToPage(currentPage - 1)"
+          >
+            <i class="bi bi-chevron-left"></i>
+          </button>
+
+          <button 
+            *ngFor="let page of pageNumbers"
+            class="page-btn"
+            [class.active]="page === currentPage"
+            [class.ellipsis]="page === '...'"
+            [disabled]="page === '...'"
+            (click)="page !== '...' && goToPage(+page)"
+          >
+            {{ page }}
+          </button>
+
+          <button 
+            class="page-btn"
+            [disabled]="currentPage === totalPages"
+            (click)="goToPage(currentPage + 1)"
+          >
+            <i class="bi bi-chevron-right"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== CART TAB ==================== -->
+    <div *ngIf="activeTab === 'cart'" class="tab-content">
+      <div class="cart-section">
+        <div class="section-header d-flex justify-content-between align-items-center">
+          <h2><i class="bi bi-cart me-2"></i>Mi Carrito de Compras</h2>
+          <button *ngIf="cart && cart.items.length > 0" class="btn btn-outline-danger" (click)="clearCart()">
+            <i class="bi bi-trash me-2"></i>
+            Vaciar Todo el Carrito
+          </button>
+        </div>
+
+        <div *ngIf="!cart || cart.items.length === 0" class="empty-cart">
+          <i class="bi bi-cart-x"></i>
+          <h3>Tu carrito está vacío</h3>
+          <p>Explora eventos y agrega paquetes a tu carrito</p>
+          <button class="btn btn-primary" (click)="switchTab('events')">
+            <i class="bi bi-calendar-event me-2"></i>
+            Ver Eventos
+          </button>
+        </div>
+
+        <div *ngIf="cart && cart.items.length > 0" class="cart-content">
+          
+          <div *ngFor="let group of groupedItems" class="cart-group mb-4 border rounded shadow-sm">
+            <div class="group-header bg-light p-3 border-bottom d-flex justify-content-between align-items-center">
+              <h4 class="m-0 fs-5"><i class="bi bi-shop me-2"></i>Organizador #{{ group.adminId }}</h4>
+              <span class="badge bg-primary">{{ group.items.length }} items</span>
+            </div>
+
+            <div class="cart-items p-3">
+              <div *ngFor="let item of group.items" class="cart-item-card mb-3 pb-3 border-bottom">
+                <div class="item-header d-flex justify-content-between align-items-center">
+                  <h5 class="m-0">{{ item.eventName }}</h5>
+                  <button class="btn btn-link text-danger p-0" (click)="removeFromCart(item.id)" title="Eliminar del carrito">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </div>
+                
+                <div class="item-details mt-3">
+                  <!-- Entradas -->
+                  <div class="detail-section mb-2">
+                    <div class="d-flex justify-content-between align-items-center">
+                      <span>Entrada ({{ item.unitPrice | currency: 'USD':'symbol':'1.2-2' }})</span>
+                      <div class="quantity-controls d-flex align-items-center gap-2">
+                        <span class="fw-bold badge bg-secondary">{{ item.quantity }}</span>
+                        <button class="btn btn-sm btn-outline-primary" (click)="duplicateItem(item)" title="Agregar otra entrada">
+                          <i class="bi bi-plus-lg"></i> Duplicar
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Consumiciones -->
+                  <div class="detail-section mt-3 p-2 bg-light rounded" *ngIf="item.consumptions && item.consumptions.length > 0">
+                    <h6 class="text-muted small mb-2 fw-bold">Consumiciones Incluidas:</h6>
+                    <div class="consumption-row d-flex justify-content-between align-items-center mb-2" *ngFor="let consumption of item.consumptions">
+                      <span class="small">{{ consumption.consumptionName }} ({{ consumption.unitPrice | currency: 'USD':'symbol':'1.2-2' }})</span>
+                      <div class="d-flex align-items-center gap-2">
+                        <div class="btn-group btn-group-sm">
+                          <button class="btn btn-outline-secondary" (click)="decrementConsumption(item.id, consumption)">-</button>
+                          <button class="btn btn-outline-secondary disabled text-dark">{{ consumption.quantity }}</button>
+                          <button class="btn btn-outline-secondary" (click)="incrementConsumption(item.id, consumption)">+</button>
+                        </div>
+                        <button class="btn btn-sm text-danger" (click)="removeConsumption(item.id, consumption)">
+                          <i class="bi bi-x-lg"></i>
+                        </button>
+                      </div>
+                    </div>
+                    <div class="text-end border-top pt-1 mt-1">
+                      <small class="text-muted">Subtotal Consumiciones: {{ getConsumptionsTotal(item.consumptions) | currency: 'USD':'symbol':'1.2-2' }}</small>
+                    </div>
+                  </div>
+
+                  <!-- Add Consumption Button -->
+                  <div class="mt-2">
+                    <button class="btn btn-sm btn-link text-decoration-none p-0" (click)="showAddConsumptionModal(item)">
+                      <i class="bi bi-plus-circle me-1"></i>Agregar consumición
+                    </button>
+                  </div>
+
+                  <!-- Item Total -->
+                  <div class="item-total text-end mt-2 pt-2 border-top">
+                    <span class="text-muted me-2">Subtotal Item:</span>
+                    <strong class="text-primary">{{ item.subtotal | currency: 'USD':'symbol':'1.2-2' }}</strong>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="group-footer p-3 bg-light border-top d-flex justify-content-between align-items-center">
+              <div class="group-total">
+                <span class="text-muted me-2">Total Grupo:</span>
+                <strong class="fs-4 text-success">{{ group.total | currency: 'USD':'symbol':'1.2-2' }}</strong>
+              </div>
+              <button class="btn btn-success btn-lg" (click)="payAdminGroup(group.adminId)">
+                <i class="bi bi-credit-card me-2"></i>
+                Pagar este Grupo
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== TICKETS TAB ==================== -->
+    <div *ngIf="activeTab === 'tickets'" class="tab-content">
+      <div class="tickets-section">
+        <h2><i class="bi bi-ticket-perforated me-2"></i>Mis Entradas</h2>
+
+        <div *ngIf="isLoadingTickets" class="loading-container">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Cargando...</span>
+          </div>
+          <p>Cargando tus entradas...</p>
+        </div>
+
+        <div *ngIf="!isLoadingTickets && myTickets.length === 0" class="empty-state">
+          <i class="bi bi-ticket-detailed"></i>
+          <h3>No tienes entradas aún</h3>
+          <p>Explora eventos y compra tu primera entrada</p>
+          <button class="btn btn-primary" (click)="switchTab('events')">
+            <i class="bi bi-calendar-event me-2"></i>
+            Ver Eventos
+          </button>
+        </div>
+
+        <div *ngIf="!isLoadingTickets && myTickets.length > 0" class="tickets-grid">
+          <div *ngFor="let ticket of myTickets" class="ticket-card">
+            <div class="ticket-header">
+              <h4>{{ ticket.eventName }}</h4>
+              <span class="ticket-status" [class.active]="ticket.active" [class.redeemed]="ticket.redeemed">
+                {{ ticket.redeemed ? 'Canjeado' : (ticket.active ? 'Activo' : 'Inactivo') }}
+              </span>
+            </div>
+            <div class="ticket-details">
+              <p><strong>Fecha del evento:</strong> {{ ticket.eventDate | date: 'dd/MM/yyyy HH:mm' }}</p>
+              <p>
+                <strong>Ubicación:</strong> 
+                <span 
+                  class="location-link" 
+                  (click)="openTicketLocation(ticket)">
+                  {{ ticket.eventLocationName || ticket.eventLocation }}
+                </span>
+              </p>
+              <p><strong>Código de pase:</strong> {{ ticket.passCode ? ticket.passCode.slice(-8) : 'N/A' }}</p>
+              <p><strong>Comprado el:</strong> {{ ticket.purchasedAt | date: 'dd/MM/yyyy HH:mm' }}</p>
+              
+              <div *ngIf="ticket.ticketConsumption && ticket.ticketConsumption.ticketDetails && ticket.ticketConsumption.ticketDetails.length > 0">
+                <p><strong>Consumiciones incluidas:</strong></p>
+                <ul>
+                  <li *ngFor="let detail of ticket.ticketConsumption.ticketDetails">
+                    {{ detail.consumptionName }} (x{{ detail.quantity }})
+                    <span *ngIf="detail.redeem" class="badge bg-success ms-2">Canjeado</span>
+                  </li>
+                </ul>
+              </div>
+              
+              <div *ngIf="!ticket.ticketConsumption || !ticket.ticketConsumption.ticketDetails || ticket.ticketConsumption.ticketDetails.length === 0">
+                <p class="text-muted"><em>Sin consumiciones</em></p>
+              </div>
+            </div>
+            
+            <div class="ticket-actions">
+              <button class="btn btn-sm btn-primary" *ngIf="ticket.active" (click)="showTicketQR(ticket)">
+                <i class="bi bi-qr-code me-1"></i>Ver QR
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== QR CODE MODAL ==================== -->
+    <div *ngIf="showQrModal" class="modal-overlay" (click)="closeQrModal()">
+      <div class="modal-content qr-modal" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3><i class="bi bi-qr-code me-2"></i>Código QR de tu Entrada</h3>
+          <button class="btn-close" (click)="closeQrModal()">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div>
+        
+        <div class="modal-body" *ngIf="selectedTicket">
+          <div class="qr-container">
+            <h4>{{ selectedTicket.eventName }}</h4>
+            <p class="text-muted mb-3">{{ selectedTicket.eventDate | date: 'dd/MM/yyyy HH:mm' }}</p>
+            
+            <!-- QR Code generado -->
+            <div class="qr-code-display">
+              <img *ngIf="selectedTicket.qrCode" [src]="selectedTicket.qrCode" alt="QR Code" class="qr-code-image">
+              <p class="mt-3"><strong>Código de Pase:</strong> {{ selectedTicket.passCode ? selectedTicket.passCode.slice(-8) : 'N/A' }}</p>
+              <p class="text-muted small">Muestra este QR en la entrada del evento</p>
+            </div>
+            
+            <div class="ticket-info mt-3">
+              <p><strong>Usuario:</strong> {{ currentUser?.username }}</p>
+              <p><strong>Estado:</strong> 
+                <span class="badge" [class.bg-success]="selectedTicket.active" [class.bg-secondary]="!selectedTicket.active">
+                  {{ selectedTicket.active ? 'Activo' : 'Inactivo' }}
+                </span>
+              </p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="modal-footer">
+          <button class="btn btn-secondary" (click)="closeQrModal()">Cerrar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== PROFILE TAB ==================== -->
+    <div *ngIf="activeTab === 'profile'" class="tab-content">
+      <div class="profile-section">
+        <div class="section-header">
+          <h2><i class="bi bi-person me-2"></i>Mi Perfil</h2>
+          <p class="text-muted">Actualiza tu información personal</p>
+        </div>
+
+        <div *ngIf="isLoadingProfile" class="loading-container">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Cargando...</span>
+          </div>
+          <p>Cargando perfil...</p>
+        </div>
+
+        <div *ngIf="!isLoadingProfile" class="profile-content">
+          <div class="row">
+            <!-- Información de Acceso (READONLY) -->
+            <div class="col-md-6">
+              <div class="info-section">
+                <div class="section-title-profile">
+                  <i class="bi bi-shield-lock me-2"></i>
+                  <h5>Información de Acceso</h5>
+                </div>
+                <div class="form-group">
+                  <label><i class="bi bi-person-badge"></i> Nombre de Usuario</label>
+                  <input 
+                    type="text" 
+                    class="form-control" 
+                    [value]="userAuthData?.username || ''"
+                    readonly
+                  />
+                </div>
+                <div class="form-group">
+                  <label><i class="bi bi-envelope"></i> Email</label>
+                  <input 
+                    type="email" 
+                    class="form-control" 
+                    [value]="userAuthData?.email || ''"
+                    readonly
+                  />
+                </div>
+                <div class="form-group">
+                  <label><i class="bi bi-card-text"></i> Documento</label>
+                  <input 
+                    type="text" 
+                    class="form-control" 
+                    [value]="userAuthData?.document || ''"
+                    readonly
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- Información Personal (EDITABLE) -->
+            <div class="col-md-6">
+              <div class="info-section">
+                <div class="section-title-profile">
+                  <i class="bi bi-person me-2"></i>
+                  <h5>Información Personal</h5>
+                  <button 
+                    *ngIf="!isEditingProfile" 
+                    class="btn btn-sm btn-edit-small" 
+                    (click)="toggleEditProfile()">
+                    <i class="bi bi-pencil me-1"></i>Editar
+                  </button>
+                  <button 
+                    *ngIf="isEditingProfile" 
+                    class="btn btn-sm btn-cancel-small" 
+                    (click)="toggleEditProfile()">
+                    <i class="bi bi-x-lg me-1"></i>Cancelar
+                  </button>
+                </div>
+                
+                <form [formGroup]="profileForm" (ngSubmit)="onSubmitProfile()">
+                  <div class="form-group">
+                    <label><i class="bi bi-person"></i> Nombre *</label>
+                    <input 
+                      type="text" 
+                      class="form-control" 
+                      formControlName="name"
+                      [class.is-invalid]="profileForm.get('name')?.invalid && profileForm.get('name')?.touched"
+                    />
+                    <div class="invalid-feedback" *ngIf="profileForm.get('name')?.errors?.['required']">
+                      El nombre es requerido
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label><i class="bi bi-person"></i> Apellido *</label>
+                    <input 
+                      type="text" 
+                      class="form-control" 
+                      formControlName="lastName"
+                      [class.is-invalid]="profileForm.get('lastName')?.invalid && profileForm.get('lastName')?.touched"
+                    />
+                    <div class="invalid-feedback" *ngIf="profileForm.get('lastName')?.errors?.['required']">
+                      El apellido es requerido
+                    </div>
+                  </div>
+
+                  <div class="row">
+                    <div class="col-md-6">
+                      <div class="form-group">
+                        <label><i class="bi bi-gender-ambiguous"></i> Género *</label>
+                        <select 
+                          class="form-control" 
+                          formControlName="gender"
+                          [class.is-invalid]="profileForm.get('gender')?.invalid && profileForm.get('gender')?.touched"
+                        >
+                          <option value="">Seleccionar...</option>
+                          <option value="MALE">Masculino</option>
+                          <option value="FEMALE">Femenino</option>
+                          <option value="OTHER">Otro</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="form-group">
+                        <label><i class="bi bi-calendar"></i> Fecha de Nacimiento *</label>
+                        <input 
+                          type="date" 
+                          class="form-control" 
+                          formControlName="bornDate"
+                          [class.is-invalid]="profileForm.get('bornDate')?.invalid && profileForm.get('bornDate')?.touched"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label><i class="bi bi-telephone"></i> Teléfono *</label>
+                    <input 
+                      type="tel" 
+                      class="form-control" 
+                      formControlName="telephone"
+                      placeholder="1234567890"
+                      [class.is-invalid]="profileForm.get('telephone')?.invalid && profileForm.get('telephone')?.touched"
+                    />
+                    <div class="invalid-feedback" *ngIf="profileForm.get('telephone')?.errors?.['pattern']">
+                      Debe ser un número de 10 dígitos
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label><i class="bi bi-image"></i> URL de Imagen de Perfil</label>
+                    <input 
+                      type="url" 
+                      class="form-control" 
+                      formControlName="profileImageUrl"
+                      placeholder="https://ejemplo.com/imagen.jpg"
+                    />
+                  </div>
+
+                  <button 
+                    type="submit" 
+                    class="btn btn-save w-100" 
+                    *ngIf="isEditingProfile"
+                    [disabled]="profileForm.invalid || isLoadingProfile">
+                    <i class="bi bi-check-lg me-2"></i>
+                    Guardar Cambios
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+
+          <hr class="my-4" />
+
+          <!-- Cambiar Contraseña -->
+          <div class="row">
+            <div class="col-md-6">
+              <div class="info-section">
+                <div class="section-title-profile">
+                  <i class="bi bi-key me-2"></i>
+                  <h5>Cambiar Contraseña</h5>
+                </div>
+                
+                <form [formGroup]="changePasswordForm" (ngSubmit)="onChangePassword()">
+                  <div class="form-group">
+                    <label><i class="bi bi-lock"></i> Contraseña Actual *</label>
+                    <input 
+                      type="password" 
+                      class="form-control" 
+                      formControlName="currentPassword"
+                      [class.is-invalid]="changePasswordForm.get('currentPassword')?.invalid && changePasswordForm.get('currentPassword')?.touched"
+                    />
+                    <div class="invalid-feedback" *ngIf="changePasswordForm.get('currentPassword')?.errors?.['required']">
+                      La contraseña actual es requerida
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label><i class="bi bi-lock-fill"></i> Nueva Contraseña *</label>
+                    <input 
+                      type="password" 
+                      class="form-control" 
+                      formControlName="newPassword"
+                      [class.is-invalid]="changePasswordForm.get('newPassword')?.invalid && changePasswordForm.get('newPassword')?.touched"
+                    />
+                    <div class="invalid-feedback" *ngIf="changePasswordForm.get('newPassword')?.errors?.['minlength']">
+                      La contraseña debe tener al menos 6 caracteres
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label><i class="bi bi-lock-fill"></i> Confirmar Nueva Contraseña *</label>
+                    <input 
+                      type="password" 
+                      class="form-control" 
+                      formControlName="confirmPassword"
+                      [class.is-invalid]="(changePasswordForm.get('confirmPassword')?.invalid || changePasswordForm.errors?.['mismatch']) && changePasswordForm.get('confirmPassword')?.touched"
+                    />
+                    <div class="invalid-feedback" *ngIf="changePasswordForm.errors?.['mismatch'] && changePasswordForm.get('confirmPassword')?.touched">
+                      Las contraseñas no coinciden
+                    </div>
+                  </div>
+
+                  <button 
+                    type="submit" 
+                    class="btn btn-warning w-100"
+                    [disabled]="changePasswordForm.invalid">
+                    <i class="bi bi-shield-lock me-2"></i>
+                    Cambiar Contraseña
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="dashboard-footer">
+      <p>&copy; 2025 PackedGo. Todos los derechos reservados.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para agregar consumiciones -->
+<div class="modal-overlay" *ngIf="showModal" (click)="closeModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3><i class="bi bi-cup-straw me-2"></i>Agregar Consumición</h3>
+      <button class="btn-close" (click)="closeModal()">×</button>
+    </div>
+    
+    <div class="modal-body">
+      <!-- Loader mientras se cargan las consumiciones -->
+      <div *ngIf="isLoadingConsumptions" class="modal-loader">
+        <div class="spinner"></div>
+        <p>Cargando consumiciones...</p>
+      </div>
+
+      <!-- Lista de consumiciones disponibles -->
+      <div *ngIf="!isLoadingConsumptions && availableConsumptions.length > 0" class="consumptions-list">
+        <div class="consumption-option" *ngFor="let consumption of availableConsumptions">
+          <div class="consumption-info-modal">
+            <h4>{{ consumption.name }}</h4>
+            <p class="consumption-category">{{ consumption.categoryName }}</p>
+            <p class="consumption-price-modal">{{ consumption.price | currency: 'USD':'symbol':'1.2-2' }}</p>
+          </div>
+          <button class="btn-add" (click)="addConsumption(consumption.id)">
+            <i class="bi bi-plus"></i> Agregar
+          </button>
+        </div>
+      </div>
+
+      <!-- Mensaje si no hay consumiciones -->
+      <div *ngIf="!isLoadingConsumptions && availableConsumptions.length === 0" class="no-consumptions">
+        <i class="bi bi-info-circle"></i>
+        <p>No hay consumiciones disponibles para este evento</p>
+      </div>
+    </div>
+  </div>
+</div>

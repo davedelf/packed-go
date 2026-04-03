@@ -1,0 +1,55 @@
+<div class="dashboard-container">
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <img src="images/logo-icon.svg" alt="PackedGo" class="navbar-logo">
+      <span>PackedGo Admin</span>
+    </div>
+    <div class="navbar-user">
+      <div class="user-info">
+        <i class="bi bi-person-circle"></i>
+        <span>{{ currentUser?.username || 'Admin' }}</span>
+      </div>
+      <button class="btn btn-logout" (click)="logout()">
+        <i class="bi bi-box-arrow-right"></i>
+        Cerrar Sesión
+      </button>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="dashboard-content">
+    <!-- Welcome Section -->
+    <div class="welcome-section">
+      <h1>¡Bienvenido, {{ currentUser?.username || 'Admin' }}!</h1>
+      <p>Panel de Administración - PackedGo</p>
+    </div>
+
+    <!-- Quick Actions -->
+    <div *ngIf="!isLoading" class="quick-actions-section">
+      <div class="actions-grid">
+        <div 
+          *ngFor="let action of quickActions" 
+          class="action-card action-{{ action.color }}"
+          (click)="navigateTo(action.route)"
+        >
+          <div class="action-icon">
+            <i [class]="action.icon"></i>
+          </div>
+          <div class="action-content">
+            <h3>{{ action.title }}</h3>
+            <p>{{ action.description }}</p>
+          </div>
+          <div class="action-arrow">
+            <i class="bi bi-arrow-right"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="dashboard-footer">
+      <p>&copy; 2025 PackedGo. Todos los derechos reservados.</p>
+    </div>
+  </div>
+</div>

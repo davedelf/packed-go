@@ -1,0 +1,99 @@
+<div class="employee-alert">
+  <i class="bi bi-person-badge-fill"></i> Área de Empleados
+</div>
+
+<div class="login-container">
+  <!-- Back to Landing Button -->
+  <button type="button" class="btn-back-landing" (click)="goToLanding()">
+    <i class="bi bi-arrow-left"></i> Volver al inicio
+  </button>
+
+  <div class="text-center mb-4">
+    <div class="logo-container mb-3">
+      <img src="images/logo-packedgo.svg" alt="PackedGo Logo" class="logo-main">
+    </div>
+    <h2 class="title">Login Empleado</h2>
+    <p class="subtitle">Acceso para escaneo de tickets y consumiciones</p>
+  </div>
+
+  <!-- Error Alert -->
+  <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show" role="alert">
+    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+    {{ errorMessage }}
+    <button type="button" class="btn-close" (click)="errorMessage = ''" aria-label="Close"></button>
+  </div>
+
+  <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+    <!-- Email -->
+    <div class="mb-3">
+      <label for="email" class="form-label">
+        <i class="bi bi-envelope"></i> Correo Electrónico
+      </label>
+      <input 
+        type="email" 
+        class="form-control" 
+        id="email"
+        formControlName="email"
+        placeholder="empleado@packedgo.com"
+        [class.is-invalid]="email?.invalid && email?.touched"
+        [class.is-valid]="email?.valid && email?.touched"
+      />
+      <div class="invalid-feedback" *ngIf="email?.touched">
+        <span *ngIf="email?.errors?.['required']">El correo es requerido</span>
+        <span *ngIf="email?.errors?.['email']">Correo inválido</span>
+      </div>
+    </div>
+
+    <!-- Password -->
+    <div class="mb-3">
+      <label for="password" class="form-label">
+        <i class="bi bi-lock"></i> Contraseña
+      </label>
+      <div class="input-group">
+        <input 
+          [type]="showPassword ? 'text' : 'password'"
+          class="form-control" 
+          id="password"
+          formControlName="password"
+          placeholder="••••••••"
+          [class.is-invalid]="password?.invalid && password?.touched"
+          [class.is-valid]="password?.valid && password?.touched"
+        />
+        <button 
+          class="btn btn-outline-secondary" 
+          type="button"
+          (click)="togglePasswordVisibility()"
+        >
+          <i [class]="showPassword ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
+        </button>
+      </div>
+      <div class="invalid-feedback" *ngIf="password?.touched">
+        <span *ngIf="password?.errors?.['required']">La contraseña es requerida</span>
+        <span *ngIf="password?.errors?.['minlength']">Mínimo 6 caracteres</span>
+      </div>
+    </div>
+
+    <!-- Submit Button -->
+    <button 
+      type="submit" 
+      class="btn btn-primary w-100 btn-login"
+      [disabled]="isLoading"
+    >
+      <span *ngIf="!isLoading">
+        <i class="bi bi-box-arrow-in-right"></i> Iniciar Sesión
+      </span>
+      <span *ngIf="isLoading">
+        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+        Iniciando sesión...
+      </span>
+    </button>
+  </form>
+
+  <!-- Help Text -->
+  <div class="text-center mt-4">
+    <p class="help-text">
+      <i class="bi bi-info-circle"></i>
+      ¿Problemas para acceder? Contacta a tu administrador
+    </p>
+  </div>
+</div>

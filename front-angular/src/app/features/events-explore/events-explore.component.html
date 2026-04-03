@@ -1,0 +1,103 @@
+<div class="explore-container">
+  <!-- Header -->
+  <header class="explore-header">
+    <div class="header-content">
+      <button class="btn-back" (click)="goBack()">
+        <span class="back-icon">←</span> Volver al inicio
+      </button>
+      <h1 class="page-title">Explora Nuestros Eventos</h1>
+      <button class="btn-register" (click)="goToRegister()">
+        Registrarse
+      </button>
+    </div>
+  </header>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-container">
+    <div class="spinner"></div>
+    <p>Cargando eventos...</p>
+  </div>
+
+  <!-- No Events State -->
+  <div *ngIf="!isLoading && events.length === 0" class="no-events">
+    <div class="no-events-icon">📅</div>
+    <h2>No hay eventos disponibles</h2>
+    <p>Vuelve pronto para descubrir nuevos eventos</p>
+    <button class="btn-primary" (click)="goBack()">Volver al inicio</button>
+  </div>
+
+  <!-- Carousel -->
+  <div *ngIf="!isLoading && events.length > 0" class="carousel-container">
+    <div class="carousel-wrapper">
+      <!-- Navigation Buttons -->
+      <button class="carousel-btn prev" (click)="prevEvent()" aria-label="Evento anterior">
+        <span class="arrow">‹</span>
+      </button>
+
+      <!-- Event Card -->
+      <div class="event-card" *ngIf="currentEvent">
+        <div class="event-image-container">
+          <img 
+            [src]="currentEvent.imageUrl || 'https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=800'" 
+            [alt]="currentEvent.name"
+            class="event-image"
+          />
+          <div class="event-category" *ngIf="currentEvent.category">
+            {{ currentEvent.category.name }}
+          </div>
+        </div>
+        
+        <div class="event-content">
+          <h2 class="event-title">{{ currentEvent.name }}</h2>
+          
+          <div class="event-info">
+            <div class="info-item">
+              <span class="info-icon">📅</span>
+              <div class="info-text">
+                <span class="info-value">{{ formatDate(currentEvent.startTime) }}</span>
+              </div>
+            </div>
+
+            <div class="info-item info-item-clickable" (click)="openGoogleMaps(currentEvent)">
+              <span class="info-icon">📍</span>
+              <div class="info-text">
+                <span class="info-label">UBICACIÓN</span>
+                <span class="info-value location-link">{{ currentEvent.locationName }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="event-description">
+            <h3>Descripción</h3>
+            <p>{{ currentEvent.description }}</p>
+          </div>
+
+          <div class="event-actions">
+            <button class="btn-primary-large" (click)="goToRegister()">
+              Registrate para Comprar tus Entradas
+            </button>
+            <p class="login-hint">
+              ¿Ya estás registrado? 
+              <a class="login-link" (click)="goToLogin()">Inicia Sesión</a>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <button class="carousel-btn next" (click)="nextEvent()" aria-label="Evento siguiente">
+        <span class="arrow">›</span>
+      </button>
+    </div>
+
+    <!-- Carousel Indicators -->
+    <div class="carousel-indicators">
+      <button 
+        *ngFor="let event of events; let i = index"
+        class="indicator"
+        [class.active]="i === currentIndex"
+        (click)="goToEvent(i)"
+        [attr.aria-label]="'Ir al evento ' + (i + 1)"
+      ></button>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,124 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+  
+  cloud:
+    gateway:
+      # Global CORS configuration
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins:
+              - "http://localhost:3000"
+              - "http://localhost:4200"
+              - "http://localhost:4201"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - PATCH
+              - OPTIONS
+            allowedHeaders:
+              - "*"
+            allowCredentials: true
+            maxAge: 3600
+      
+      # Route definitions
+      routes:
+        # Auth Service Routes
+        - id: auth-login
+          uri: http://auth-service:8081
+          predicates:
+            - Path=/api/auth/**
+          filters:
+            - name: PublicEndpointFilter
+        
+        # Users Service Routes
+        - id: users-service
+          uri: http://users-service:8082
+          predicates:
+            - Path=/api/user-profiles/**, /api/admin/employees/**, /api/employee/**, /api/internal/employees/**
+          filters:
+            - name: AuthenticationFilter
+        
+        # Event Service Routes
+        - id: event-service-public
+          uri: http://event-service:8086
+          predicates:
+            - Path=/api/event-service/event, /api/event-service/event/**, /api/event-service/consumption/event/**
+          filters:
+            - name: PublicEndpointFilter
+        
+        - id: event-service-protected
+          uri: http://event-service:8086
+          predicates:
+            - Path=/api/event-service/**, /api/event-service/category/**, /api/event-service/consumption/**, /api/event-service/passes/**, /api/event-service/tickets/**
+          filters:
+            - name: AuthenticationFilter
+        
+        # Order Service Routes
+        - id: order-service
+          uri: http://order-service:8084
+          predicates:
+            - Path=/api/cart/**, /api/orders/**
+          filters:
+            - name: AuthenticationFilter
+        
+        # Payment Service Routes
+        - id: payment-service-public
+          uri: http://payment-service:8085
+          predicates:
+            - Path=/api/payments/health, /api/webhooks/stripe
+          filters:
+            - name: PublicEndpointFilter
+        
+        - id: payment-service-protected
+          uri: http://payment-service:8085
+          predicates:
+            - Path=/api/payments/**
+          filters:
+            - name: AuthenticationFilter
+        
+        # Analytics Service Routes
+        - id: analytics-service
+          uri: http://analytics-service:8087
+          predicates:
+            - Path=/api/dashboard/**
+          filters:
+            - name: AuthenticationFilter
+      
+      # Default filters for all routes
+      default-filters:
+        - name: Retry
+          args:
+            retries: 3
+            statuses: BAD_GATEWAY,GATEWAY_TIMEOUT
+            backoff:
+              firstBackoff: 50ms
+              maxBackoff: 500ms
+
+# JWT Configuration
+jwt:
+  secret: ${JWT_SECRET:your-super-secret-key-change-in-production}
+
+# Actuator endpoints
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,gateway
+  endpoint:
+    health:
+      show-details: always
+
+# Logging
+logging:
+  level:
+    root: INFO
+    org.springframework.cloud.gateway: DEBUG
+    com.packed_go.api_gateway: DEBUG
+    reactor.netty: INFO

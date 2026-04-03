@@ -1,0 +1,34 @@
+# Archivos de control de versiones
+.git
+.gitignore
+
+# Archivos de entorno
+.env
+.env.*
+
+# Archivos de construcción
+target/
+*.jar
+*.war
+
+# Archivos de desarrollo
+.vscode/
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Logs
+*.log
+
+# Archivos temporales
+*.tmp
+*.temp
+
+# Documentación
+README.md
+*.md
+
+# Base de datos H2 (legacy)
+testdb.mv.db
+testdb.trace.db

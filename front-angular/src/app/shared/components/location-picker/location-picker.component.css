@@ -1,0 +1,245 @@
+.location-picker {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.search-container {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.search-box {
+  flex: 1;
+  min-width: 300px;
+  display: flex;
+  align-items: center;
+  background: white;
+  border: 2px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 0 15px;
+  transition: all 0.3s ease;
+}
+
+.search-box:focus-within {
+  border-color: #667eea;
+  box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+}
+
+.search-box i.bi-search {
+  color: #999;
+  font-size: 18px;
+  margin-right: 10px;
+}
+
+.search-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  padding: 12px 0;
+  font-size: 15px;
+  color: #333;
+}
+
+.search-input::placeholder {
+  color: #999;
+}
+
+.btn-search {
+  background: none;
+  border: none;
+  color: #667eea;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 0;
+  margin-left: 10px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+}
+
+.btn-search:hover {
+  color: #764ba2;
+  transform: scale(1.1);
+}
+
+.btn-location {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.btn-location:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+}
+
+.btn-location i {
+  font-size: 18px;
+}
+
+.map-container {
+  width: 100%;
+  height: 400px;
+  border-radius: 15px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  border: 2px solid #e0e0e0;
+}
+
+.coordinates-info {
+  display: flex;
+  gap: 20px;
+  padding: 15px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  border-radius: 12px;
+  flex-wrap: wrap;
+}
+
+.coordinate-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 200px;
+}
+
+.coordinate-item .label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 600;
+  color: #555;
+  font-size: 14px;
+}
+
+.coordinate-item .label i {
+  color: #667eea;
+  font-size: 16px;
+}
+
+.coordinate-item .value {
+  font-family: 'Courier New', monospace;
+  font-size: 15px;
+  color: #333;
+  background: white;
+  padding: 5px 12px;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+}
+
+.help-text {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 15px;
+  background: #e3f2fd;
+  border-left: 4px solid #2196f3;
+  border-radius: 8px;
+  color: #1565c0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.help-text i {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.powered-by {
+  text-align: center;
+  font-size: 12px;
+  color: #666;
+  padding: 8px 0;
+}
+
+.powered-by a {
+  color: #667eea;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.powered-by a:hover {
+  text-decoration: underline;
+}
+
+.btn-search:disabled,
+.search-input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Spinner para búsqueda */
+.spinner-border {
+  display: inline-block;
+  width: 1rem;
+  height: 1rem;
+  vertical-align: text-bottom;
+  border: 0.15em solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spinner-border 0.75s linear infinite;
+}
+
+.spinner-border-sm {
+  width: 0.875rem;
+  height: 0.875rem;
+  border-width: 0.125em;
+}
+
+@keyframes spinner-border {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .search-container {
+    flex-direction: column;
+  }
+
+  .search-box {
+    min-width: 100%;
+  }
+
+  .btn-location {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .map-container {
+    height: 300px;
+  }
+
+  .coordinates-info {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .coordinate-item {
+    min-width: 100%;
+  }
+}
+
+/* Animación para el marcador del mapa */
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}

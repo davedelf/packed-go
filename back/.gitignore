@@ -1,0 +1,29 @@
+# Environment Variables - CRITICAL: Never commit!
+.env
+.env.local
+.env.*.local
+*.env
+**/.env
+
+# Database init files with credentials
+**/database-init.sql
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Docker volumes
+volumes/
+
+# Temporary files
+*.tmp
+*.bak
+*.swp

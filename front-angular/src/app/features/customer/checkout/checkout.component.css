@@ -1,0 +1,938 @@
+.checkout-container {
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+/* Loading State */
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  gap: 1rem;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #007bff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.spinner-small {
+  width: 20px;
+  height: 20px;
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #007bff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Error State */
+.error-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+}
+
+.error-message {
+  background: #fff;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  text-align: center;
+  max-width: 500px;
+}
+
+.error-message h3 {
+  color: #dc3545;
+  margin-bottom: 1rem;
+}
+
+/* Payment Return Message */
+.payment-return-message {
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  font-weight: 500;
+  text-align: center;
+  animation: slideDown 0.3s ease-out;
+  white-space: pre-line; /* Permite saltos de línea con \n */
+  line-height: 1.6;
+  font-size: 1rem;
+}
+
+.payment-return-message.alert-success {
+  background-color: #d4edda;
+  color: #155724;
+  border: 2px solid #c3e6cb;
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.2);
+}
+
+.payment-return-message.alert-warning {
+  background-color: #fff3cd;
+  color: #856404;
+  border: 2px solid #ffeaa7;
+  box-shadow: 0 4px 12px rgba(255, 193, 7, 0.2);
+}
+
+.payment-return-message.alert-danger {
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 2px solid #f5c6cb;
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.2);
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Header */
+.checkout-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.checkout-header h1 {
+  font-size: 2rem;
+  color: #333;
+  margin: 0;
+}
+
+.session-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.timer {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #28a745;
+  padding: 0.5rem 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.timer-warning {
+  color: #dc3545;
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+/* Badges */
+.badge {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.badge-success {
+  background: #d4edda;
+  color: #155724;
+}
+
+.badge-warning {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.badge-danger {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.badge-info {
+  background: #d1ecf1;
+  color: #0c5460;
+}
+
+.badge-secondary {
+  background: #e2e3e5;
+  color: #383d41;
+}
+
+/* Session Summary */
+.session-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.summary-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.summary-item .label {
+  font-size: 0.875rem;
+  color: #6c757d;
+  text-transform: uppercase;
+}
+
+.summary-item .value {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #333;
+}
+
+.summary-item .value.total {
+  color: #007bff;
+}
+
+.summary-item .value.success {
+  color: #28a745;
+}
+
+.summary-item .value.warning {
+  color: #ffc107;
+}
+
+/* Warning Box */
+.warning-box {
+  background: #fff3cd;
+  border: 2px solid #ffc107;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 2rem;
+}
+
+.warning-box p {
+  margin: 0.5rem 0;
+  color: #856404;
+}
+
+/* Payment Groups */
+.payment-groups {
+  margin-bottom: 2rem;
+}
+
+.payment-groups h2 {
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
+  color: #333;
+}
+
+.payment-group-card {
+  background: #fff;
+  border: 2px solid #e0e0e0;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.payment-group-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+}
+
+/* Card Header */
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+}
+
+.header-left h3 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.order-number {
+  font-size: 0.875rem;
+  opacity: 0.9;
+  margin-top: 0.25rem;
+  display: block;
+}
+
+/* Card Body */
+.card-body {
+  padding: 1.5rem;
+}
+
+/* Items List */
+.items-list {
+  margin-bottom: 1rem;
+}
+
+.items-list h4 {
+  font-size: 1rem;
+  margin-bottom: 0.75rem;
+  color: #666;
+}
+
+.item-group {
+  margin-bottom: 1.5rem;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.item-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  background: #f8f9fa;
+}
+
+.item-row.main-item {
+  background: #e9ecef;
+  font-weight: 500;
+}
+
+.item-name {
+  flex: 1;
+  font-weight: 500;
+}
+
+.item-quantity {
+  color: #666;
+  margin: 0 1rem;
+  min-width: 50px;
+  text-align: right;
+}
+
+.item-price {
+  font-weight: bold;
+  color: #007bff;
+  min-width: 120px;
+  text-align: right;
+}
+
+/* Consumptions List */
+.consumptions-list {
+  background: #ffffff;
+  padding: 0.5rem 0;
+}
+
+.consumption-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  padding-left: 2rem;
+  border-bottom: 1px dashed #dee2e6;
+}
+
+.consumption-row:last-of-type {
+  border-bottom: none;
+}
+
+.consumption-indent {
+  color: #6c757d;
+  margin-right: 0.5rem;
+  font-family: monospace;
+  font-size: 0.9rem;
+}
+
+.consumption-name {
+  flex: 1;
+  font-size: 0.9rem;
+  color: #495057;
+}
+
+.consumption-quantity {
+  color: #6c757d;
+  margin: 0 1rem;
+  min-width: 50px;
+  text-align: right;
+  font-size: 0.9rem;
+}
+
+.consumption-price {
+  font-weight: 500;
+  color: #6c757d;
+  font-size: 0.9rem;
+  min-width: 120px;
+  text-align: right;
+}
+
+/* Item Subtotal Row */
+.item-subtotal-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  background: #f8f9fa;
+  border-top: 2px solid #dee2e6;
+  font-weight: 600;
+}
+
+.subtotal-label {
+  color: #495057;
+  font-size: 0.95rem;
+}
+
+.subtotal-amount {
+  color: #28a745;
+  font-size: 1.1rem;
+  min-width: 120px;
+  text-align: right;
+}
+
+/* Group Total */
+.group-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: #e9ecef;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  font-size: 1.25rem;
+}
+
+.total-label {
+  font-weight: 600;
+}
+
+.total-amount {
+  font-weight: bold;
+  color: #007bff;
+  font-size: 1.5rem;
+}
+
+/* Payment Actions */
+.payment-actions {
+  margin-top: 1rem;
+}
+
+.generating-payment {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 6px;
+  color: #666;
+}
+
+.payment-buttons {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.no-payment-link {
+  padding: 1rem;
+  background: #fff3cd;
+  border: 2px dashed #ffc107;
+  border-radius: 6px;
+  text-align: center;
+}
+
+.no-payment-link .text-warning {
+  margin: 0 0 0.75rem 0;
+  color: #856404;
+  font-weight: 500;
+}
+
+/* Buttons */
+.btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: #007bff;
+  color: #fff;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #0056b3;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,123,255,0.3);
+}
+
+.btn-secondary {
+  background: #6c757d;
+  color: #fff;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: #545b62;
+}
+
+.btn-danger {
+  background: #dc3545;
+  color: #fff;
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: #c82333;
+}
+
+.btn-link {
+  background: transparent;
+  color: #007bff;
+  padding: 0.5rem;
+}
+
+.btn-link:hover:not(:disabled) {
+  background: #f8f9fa;
+}
+
+.btn-pay {
+  flex: 1;
+  min-width: 200px;
+}
+
+.btn-qr {
+  flex: 0 0 auto;
+}
+
+.btn-verify {
+  flex: 0 1 auto;
+  min-width: 160px;
+  font-weight: 600;
+  background: #28a745;
+  border-color: #28a745;
+  animation: pulse-green 2s ease-in-out infinite;
+}
+
+.btn-verify:hover:not(:disabled) {
+  background: #218838;
+  border-color: #1e7e34;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+}
+
+@keyframes pulse-green {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(40, 167, 69, 0);
+  }
+}
+
+.btn-refresh {
+  flex: 0 0 auto;
+  font-size: 1.25rem;
+}
+
+/* Paid Status */
+.paid-status {
+  padding: 1rem;
+  background: #d4edda;
+  border: 2px solid #28a745;
+  border-radius: 6px;
+  text-align: center;
+  margin-top: 1rem;
+}
+
+.success-message {
+  margin: 0;
+  color: #155724;
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+/* Instructions */
+.instructions {
+  background: #fff;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 2px solid #e0e0e0;
+  margin-bottom: 2rem;
+}
+
+.instructions h3 {
+  margin-top: 0;
+  color: #333;
+}
+
+.instructions ol {
+  margin: 0;
+  padding-left: 1.5rem;
+}
+
+.instructions li {
+  margin-bottom: 0.75rem;
+  line-height: 1.6;
+}
+
+/* Checkout Actions */
+.checkout-actions {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  padding: 2rem 0;
+  border-top: 2px solid #e0e0e0;
+}
+
+/* Responsive - MEJORADO */
+@media (max-width: 992px) {
+  .checkout-container {
+    padding: 2rem 1.5rem;
+  }
+  
+  .session-summary {
+    gap: 1.25rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .checkout-container {
+    padding: 1.5rem 1rem;
+  }
+  
+  .checkout-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .checkout-header h1 {
+    font-size: 1.8rem;
+  }
+  
+  .session-timer {
+    font-size: 0.9rem;
+    padding: 8px 15px;
+  }
+
+  .session-summary {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .summary-item {
+    padding: 1rem;
+  }
+  
+  .summary-item i {
+    font-size: 1.5rem;
+  }
+  
+  .summary-value {
+    font-size: 1.3rem;
+  }
+
+  .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+  
+  .card-header h2 {
+    font-size: 1.3rem;
+  }
+  
+  .order-items,
+  .payment-methods,
+  .order-summary {
+    padding: 1.25rem;
+  }
+  
+  .item-details h4 {
+    font-size: 1.1rem;
+  }
+  
+  .consumption-item {
+    font-size: 0.9rem;
+  }
+
+  .payment-buttons {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .btn-pay {
+    min-width: 100%;
+    padding: 1rem;
+    font-size: 1rem;
+  }
+  
+  .summary-row {
+    font-size: 0.95rem;
+  }
+  
+  .summary-total {
+    font-size: 1.1rem;
+  }
+
+  .checkout-actions {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .checkout-actions .btn {
+    width: 100%;
+    padding: 0.85rem;
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .checkout-container {
+    padding: 1rem 0.75rem;
+  }
+  
+  .checkout-header {
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+  }
+  
+  .checkout-header h1 {
+    font-size: 1.5rem;
+  }
+  
+  .session-timer {
+    font-size: 0.85rem;
+    padding: 6px 12px;
+    gap: 5px;
+  }
+  
+  .session-summary {
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+  }
+  
+  .summary-item {
+    padding: 0.85rem;
+    border-radius: 10px;
+  }
+  
+  .summary-item i {
+    font-size: 1.3rem;
+  }
+  
+  .summary-label {
+    font-size: 0.85rem;
+  }
+  
+  .summary-value {
+    font-size: 1.1rem;
+  }
+  
+  .order-items,
+  .payment-methods,
+  .order-summary {
+    padding: 1rem 0.85rem;
+    border-radius: 10px;
+    margin-bottom: 1rem;
+  }
+  
+  .card-header {
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.85rem;
+  }
+  
+  .card-header h2 {
+    font-size: 1.2rem;
+  }
+  
+  .card-header .badge {
+    padding: 4px 10px;
+    font-size: 0.8rem;
+  }
+  
+  .order-item {
+    padding: 1rem 0.75rem;
+    margin-bottom: 0.85rem;
+    border-radius: 10px;
+  }
+  
+  .item-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  .item-details h4 {
+    font-size: 1rem;
+  }
+  
+  .item-quantity {
+    font-size: 0.9rem;
+  }
+  
+  .item-price {
+    font-size: 1.1rem;
+  }
+  
+  .consumption-list {
+    gap: 6px;
+    margin-top: 10px;
+  }
+  
+  .consumption-item {
+    font-size: 0.85rem;
+    gap: 5px;
+  }
+  
+  .item-footer {
+    margin-top: 10px;
+    padding-top: 10px;
+  }
+  
+  .item-total {
+    font-size: 1rem;
+  }
+  
+  .payment-buttons {
+    gap: 0.75rem;
+  }
+  
+  .btn-pay {
+    padding: 0.85rem;
+    font-size: 0.95rem;
+    gap: 8px;
+    border-radius: 10px;
+  }
+  
+  .btn-pay i {
+    font-size: 1.1rem;
+  }
+  
+  .summary-row {
+    font-size: 0.9rem;
+    padding: 0.65rem 0;
+  }
+  
+  .summary-row.subtotal,
+  .summary-row.tax {
+    font-size: 0.85rem;
+  }
+  
+  .summary-total {
+    font-size: 1rem;
+    padding: 0.85rem 0;
+  }
+  
+  .total-amount {
+    font-size: 1.3rem;
+  }
+  
+  .checkout-actions {
+    gap: 0.6rem;
+    margin-top: 1.25rem;
+  }
+  
+  .checkout-actions .btn {
+    padding: 0.75rem;
+    font-size: 0.9rem;
+    gap: 6px;
+    border-radius: 10px;
+  }
+  
+  .checkout-actions .btn i {
+    font-size: 1rem;
+  }
+}
+
+/* Extra pequeño - iPhone SE */
+@media (max-width: 375px) {
+  .checkout-container {
+    padding: 0.85rem 0.5rem;
+  }
+  
+  .checkout-header h1 {
+    font-size: 1.3rem;
+  }
+  
+  .session-timer {
+    font-size: 0.8rem;
+    padding: 5px 10px;
+  }
+  
+  .summary-item {
+    padding: 0.75rem;
+  }
+  
+  .summary-item i {
+    font-size: 1.2rem;
+  }
+  
+  .summary-label {
+    font-size: 0.8rem;
+  }
+  
+  .summary-value {
+    font-size: 1rem;
+  }
+  
+  .card-header h2 {
+    font-size: 1.1rem;
+  }
+  
+  .item-details h4 {
+    font-size: 0.95rem;
+  }
+  
+  .item-price {
+    font-size: 1rem;
+  }
+  
+  .consumption-item {
+    font-size: 0.8rem;
+  }
+  
+  .btn-pay {
+    padding: 0.75rem;
+    font-size: 0.9rem;
+  }
+  
+  .total-amount {
+    font-size: 1.2rem;
+  }
+}
+

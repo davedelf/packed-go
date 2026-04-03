@@ -1,0 +1,322 @@
+<div class="management-container">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <div class="header-left">
+        <button class="btn-back" (click)="goBack()" title="Volver al Dashboard">
+          <i class="bi bi-arrow-left-circle-fill"></i>
+        </button>
+        <i class="bi bi-people-fill"></i>
+        <div>
+          <h1>Gestión de Empleados</h1>
+          <p>Administra los empleados y asigna eventos</p>
+        </div>
+      </div>
+      <button class="btn-create" (click)="openCreateModal()">
+        <i class="bi bi-plus-circle-fill"></i>
+        Crear Empleado
+      </button>
+    </div>
+  </div>
+
+  <!-- Success/Error Messages -->
+  <div class="alert alert-success" *ngIf="successMessage">
+    <i class="bi bi-check-circle-fill"></i>
+    {{ successMessage }}
+    <button class="btn-close-alert" (click)="clearMessages()">
+      <i class="bi bi-x"></i>
+    </button>
+  </div>
+
+  <div class="alert alert-danger" *ngIf="errorMessage">
+    <i class="bi bi-exclamation-triangle-fill"></i>
+    {{ errorMessage }}
+    <button class="btn-close-alert" (click)="clearMessages()">
+      <i class="bi bi-x"></i>
+    </button>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-container" *ngIf="isLoading && employees.length === 0">
+    <div class="spinner-border"></div>
+    <p>Cargando empleados...</p>
+  </div>
+
+  <!-- Employees Table -->
+  <div class="table-container" *ngIf="!isLoading || employees.length > 0">
+    <table class="employees-table">
+      <thead>
+        <tr>
+          <th>Usuario</th>
+          <th>Email</th>
+          <th>Documento</th>
+          <th>Eventos Asignados</th>
+          <th>Fecha Creación</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let employee of employees" [class.inactive-row]="!employee.isActive">
+          <td>
+            <div class="employee-info">
+              <i class="bi bi-person-badge-fill"></i>
+              <strong>{{ employee.username }}</strong>
+            </div>
+          </td>
+          <td>{{ employee.email }}</td>
+          <td>{{ employee.document }}</td>
+          <td>
+            <div class="events-badges">
+              <span class="event-badge" *ngFor="let event of employee.assignedEvents">
+                <i class="bi bi-calendar-event"></i>
+                {{ event.name }}
+              </span>
+            </div>
+          </td>
+          <td>{{ formatDate(employee.createdAt) }}</td>
+          <td>
+            <span class="status-badge" [class.status-active]="employee.isActive" [class.status-inactive]="!employee.isActive">
+              <i class="bi" [class.bi-check-circle-fill]="employee.isActive" [class.bi-x-circle-fill]="!employee.isActive"></i>
+              {{ employee.isActive ? 'Activo' : 'Inactivo' }}
+            </span>
+          </td>
+          <td>
+            <div class="action-buttons">
+              <button class="btn-action btn-edit" (click)="openEditModal(employee)" title="Editar">
+                <i class="bi bi-pencil-fill"></i>
+              </button>
+              <button class="btn-action btn-toggle" 
+                      [class.btn-activate]="!employee.isActive"
+                      [class.btn-deactivate]="employee.isActive"
+                      (click)="toggleEmployeeStatus(employee)" 
+                      [title]="employee.isActive ? 'Desactivar' : 'Activar'">
+                <i class="bi" [class.bi-toggle-off]="!employee.isActive" [class.bi-toggle-on]="employee.isActive"></i>
+              </button>
+              <button class="btn-action btn-delete" (click)="deleteEmployee(employee)" title="Eliminar">
+                <i class="bi bi-trash-fill"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Empty State -->
+    <div class="empty-state" *ngIf="employees.length === 0 && !isLoading">
+      <i class="bi bi-people"></i>
+      <h3>No hay empleados registrados</h3>
+      <p>Crea tu primer empleado para comenzar</p>
+      <button class="btn-create" (click)="openCreateModal()">
+        <i class="bi bi-plus-circle-fill"></i>
+        Crear Empleado
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Create Employee Modal -->
+<div class="modal-overlay" *ngIf="showCreateModal" (click)="closeCreateModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>
+        <i class="bi bi-person-plus-fill"></i>
+        Crear Nuevo Empleado
+      </h2>
+      <button class="btn-close-modal" (click)="closeCreateModal()">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <form [formGroup]="createEmployeeForm" (ngSubmit)="onCreateEmployee()">
+      <div class="modal-body">
+        <!-- Email -->
+        <div class="form-group">
+          <label>
+            <i class="bi bi-envelope-fill"></i>
+            Email
+          </label>
+          <input type="email" class="form-control" formControlName="email" placeholder="ejemplo@correo.com"
+                 [class.is-invalid]="createEmployeeForm.get('email')?.invalid && createEmployeeForm.get('email')?.touched">
+          <div class="invalid-feedback" *ngIf="createEmployeeForm.get('email')?.invalid && createEmployeeForm.get('email')?.touched">
+            <span *ngIf="createEmployeeForm.get('email')?.errors?.['required']">El email es requerido</span>
+            <span *ngIf="createEmployeeForm.get('email')?.errors?.['email']">Email inválido</span>
+          </div>
+        </div>
+
+        <!-- Username -->
+        <div class="form-group">
+          <label>
+            <i class="bi bi-person-fill"></i>
+            Nombre de Usuario
+          </label>
+          <input type="text" class="form-control" formControlName="username" placeholder="juan.perez"
+                 [class.is-invalid]="createEmployeeForm.get('username')?.invalid && createEmployeeForm.get('username')?.touched">
+          <div class="invalid-feedback" *ngIf="createEmployeeForm.get('username')?.invalid && createEmployeeForm.get('username')?.touched">
+            <span *ngIf="createEmployeeForm.get('username')?.errors?.['required']">El nombre de usuario es requerido</span>
+            <span *ngIf="createEmployeeForm.get('username')?.errors?.['minlength']">Mínimo 3 caracteres</span>
+          </div>
+        </div>
+
+        <!-- Password -->
+        <div class="form-group">
+          <label>
+            <i class="bi bi-lock-fill"></i>
+            Contraseña
+          </label>
+          <input type="password" class="form-control" formControlName="password" placeholder="••••••••"
+                 [class.is-invalid]="createEmployeeForm.get('password')?.invalid && createEmployeeForm.get('password')?.touched">
+          <div class="invalid-feedback" *ngIf="createEmployeeForm.get('password')?.invalid && createEmployeeForm.get('password')?.touched">
+            <span *ngIf="createEmployeeForm.get('password')?.errors?.['required']">La contraseña es requerida</span>
+            <span *ngIf="createEmployeeForm.get('password')?.errors?.['minlength']">Mínimo 6 caracteres</span>
+          </div>
+        </div>
+
+        <!-- Document -->
+        <div class="form-group">
+          <label>
+            <i class="bi bi-card-text"></i>
+            Documento
+          </label>
+          <input type="text" class="form-control" formControlName="document" placeholder="12345678"
+                 [class.is-invalid]="createEmployeeForm.get('document')?.invalid && createEmployeeForm.get('document')?.touched">
+          <div class="invalid-feedback" *ngIf="createEmployeeForm.get('document')?.invalid && createEmployeeForm.get('document')?.touched">
+            <span *ngIf="createEmployeeForm.get('document')?.errors?.['required']">El documento es requerido</span>
+            <span *ngIf="createEmployeeForm.get('document')?.errors?.['pattern']">Solo números</span>
+          </div>
+        </div>
+
+        <!-- Events Assignment -->
+        <div class="form-group">
+          <label>
+            <i class="bi bi-calendar-event-fill"></i>
+            Asignar Eventos
+          </label>
+          <div class="events-checkboxes">
+            <div class="checkbox-item" *ngFor="let event of myEvents">
+              <input type="checkbox" 
+                     [id]="'create-event-' + event.id"
+                     [checked]="isEventSelected(event.id, createEmployeeForm)"
+                     (change)="onEventCheckboxChange(event.id, $any($event.target).checked, createEmployeeForm)">
+              <label [for]="'edit-event-' + event.id">
+                <i class="bi bi-calendar-check"></i>
+                <div class="event-info">
+                  <strong>{{ event.name }}</strong>
+                  <small>{{ formatDate(event.date) }} - {{ event.location }}</small>
+                </div>
+              </label>
+            </div>
+          </div>
+          <small class="form-text">Selecciona al menos un evento</small>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-cancel" (click)="closeCreateModal()">
+          Cancelar
+        </button>
+        <button type="submit" class="btn-submit" [disabled]="createEmployeeForm.invalid || isLoading">
+          <span class="spinner-border spinner-border-sm" *ngIf="isLoading"></span>
+          <i class="bi bi-check-circle-fill" *ngIf="!isLoading"></i>
+          {{ isLoading ? 'Creando...' : 'Crear Empleado' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Edit Employee Modal -->
+<div class="modal-overlay" *ngIf="showEditModal" (click)="closeEditModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>
+        <i class="bi bi-pencil-fill"></i>
+        Editar Empleado
+      </h2>
+      <button class="btn-close-modal" (click)="closeEditModal()">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <form [formGroup]="editEmployeeForm" (ngSubmit)="onUpdateEmployee()">
+      <div class="modal-body">
+        <!-- Email -->
+        <div class="form-group">
+          <label>
+            <i class="bi bi-envelope-fill"></i>
+            Email
+          </label>
+          <input type="email" class="form-control" formControlName="email"
+                 [class.is-invalid]="editEmployeeForm.get('email')?.invalid && editEmployeeForm.get('email')?.touched">
+          <div class="invalid-feedback" *ngIf="editEmployeeForm.get('email')?.invalid && editEmployeeForm.get('email')?.touched">
+            <span *ngIf="editEmployeeForm.get('email')?.errors?.['required']">El email es requerido</span>
+            <span *ngIf="editEmployeeForm.get('email')?.errors?.['email']">Email inválido</span>
+          </div>
+        </div>
+
+        <!-- Username -->
+        <div class="form-group">
+          <label>
+            <i class="bi bi-person-fill"></i>
+            Nombre de Usuario
+          </label>
+          <input type="text" class="form-control" formControlName="username"
+                 [class.is-invalid]="editEmployeeForm.get('username')?.invalid && editEmployeeForm.get('username')?.touched">
+          <div class="invalid-feedback" *ngIf="editEmployeeForm.get('username')?.invalid && editEmployeeForm.get('username')?.touched">
+            <span *ngIf="editEmployeeForm.get('username')?.errors?.['required']">El nombre de usuario es requerido</span>
+            <span *ngIf="editEmployeeForm.get('username')?.errors?.['minlength']">Mínimo 3 caracteres</span>
+          </div>
+        </div>
+
+        <!-- Document -->
+        <div class="form-group">
+          <label>
+            <i class="bi bi-card-text"></i>
+            Documento
+          </label>
+          <input type="text" class="form-control" formControlName="document"
+                 [class.is-invalid]="editEmployeeForm.get('document')?.invalid && editEmployeeForm.get('document')?.touched">
+          <div class="invalid-feedback" *ngIf="editEmployeeForm.get('document')?.invalid && editEmployeeForm.get('document')?.touched">
+            <span *ngIf="editEmployeeForm.get('document')?.errors?.['required']">El documento es requerido</span>
+            <span *ngIf="editEmployeeForm.get('document')?.errors?.['pattern']">Solo números</span>
+          </div>
+        </div>
+
+        <!-- Events Assignment -->
+        <div class="form-group">
+          <label>
+            <i class="bi bi-calendar-event-fill"></i>
+            Asignar Eventos
+          </label>
+          <div class="events-checkboxes">
+            <div class="checkbox-item" *ngFor="let event of myEvents">
+              <input type="checkbox" 
+                     [id]="'edit-event-' + event.id"
+                     [checked]="isEventSelected(event.id, editEmployeeForm)"
+                     (change)="onEventCheckboxChange(event.id, $any($event.target).checked, editEmployeeForm)">
+              <label [for]="'event-' + event.id">
+                <i class="bi bi-calendar-check"></i>
+                <div class="event-info">
+                  <strong>{{ event.name }}</strong>
+                  <small>{{ formatDate(event.date) }} - {{ event.location }}</small>
+                </div>
+              </label>
+            </div>
+          </div>
+          <small class="form-text">Selecciona al menos un evento</small>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-cancel" (click)="closeEditModal()">
+          Cancelar
+        </button>
+        <button type="submit" class="btn-submit" [disabled]="editEmployeeForm.invalid || isLoading">
+          <span class="spinner-border spinner-border-sm" *ngIf="isLoading"></span>
+          <i class="bi bi-check-circle-fill" *ngIf="!isLoading"></i>
+          {{ isLoading ? 'Guardando...' : 'Guardar Cambios' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

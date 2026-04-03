@@ -1,0 +1,53 @@
+<div class="location-picker">
+  <div class="search-container">
+    <div class="search-box">
+      <i class="bi bi-search"></i>
+      <input
+        type="text"
+        id="search-input"
+        [(ngModel)]="searchQuery"
+        class="search-input"
+        placeholder="Buscar dirección o lugar..."
+        (keydown.enter)="searchLocation()"
+        [disabled]="isSearching"
+      />
+      <button type="button" class="btn-search" (click)="searchLocation()" [disabled]="isSearching">
+        <i *ngIf="!isSearching" class="bi bi-arrow-right-circle-fill"></i>
+        <span *ngIf="isSearching" class="spinner-border spinner-border-sm"></span>
+      </button>
+    </div>
+    
+    <button type="button" class="btn-location" (click)="getCurrentLocation()" title="Usar mi ubicación actual">
+      <i class="bi bi-geo-alt-fill"></i>
+      Mi ubicación
+    </button>
+  </div>
+
+  <div id="map" class="map-container"></div>
+
+  <div class="coordinates-info">
+    <div class="coordinate-item">
+      <span class="label">
+        <i class="bi bi-geo-alt"></i>
+        Latitud:
+      </span>
+      <span class="value">{{ lat | number:'1.6-6' }}</span>
+    </div>
+    <div class="coordinate-item">
+      <span class="label">
+        <i class="bi bi-geo-alt-fill"></i>
+        Longitud:
+      </span>
+      <span class="value">{{ lng | number:'1.6-6' }}</span>
+    </div>
+  </div>
+
+  <div class="help-text">
+    <i class="bi bi-info-circle"></i>
+    Puedes buscar una dirección, hacer clic en el mapa o arrastrar el marcador para seleccionar la ubicación
+  </div>
+  
+  <div class="powered-by">
+    Mapas por <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>
+  </div>
+</div>
