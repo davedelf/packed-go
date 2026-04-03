@@ -687,16 +687,5 @@ docker-compose restart auth-db users-db event-db order-db payment-db
 **Proyecto**: PackedGo - Sistema de Gestión de Eventos  
 **Última Actualización**: 15 de Diciembre de 2025
 
----
 
-## 📄 Licencia
 
-Propiedad de PackedGo. Todos los derechos reservados.
-
----
-
-<div align="center">
-
-⭐️ Si este proyecto te fue útil, ¡considera给它 una estrella!
-
-</div>
