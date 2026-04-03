@@ -1,8 +1,7 @@
 package com.packed_go.event_service.entities;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
 import java.time.LocalDateTime;
 
@@ -10,8 +9,7 @@ import java.time.LocalDateTime;
 @Table(name = "passes", uniqueConstraints = {
     @UniqueConstraint(columnNames = "code")
 })
-@Getter
-@Setter
+@Data
 public class Pass {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -40,7 +38,7 @@ public class Pass {
     @Version
     private Long version;
 
-    // Constructor por defecto
+    // Constructor vacío requerido por JPA
     public Pass() {}
 
     // Constructor para crear un pass con código

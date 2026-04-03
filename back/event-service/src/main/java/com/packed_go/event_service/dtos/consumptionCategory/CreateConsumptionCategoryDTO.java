@@ -1,20 +1,14 @@
 package com.packed_go.event_service.dtos.consumptionCategory;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-@Getter
-@Setter
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class CreateConsumptionCategoryDTO {
     private String name;
     private String description;
     private Long createdBy;
-
-    public String getName() {
-        return name;
-    }
-
-    public Long getCreatedBy() {
-        return createdBy;
-    }
 }

@@ -30,17 +30,18 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
             
             log.info("🔐 AuthenticationFilter - Path: {}", request.getPath());
 
-            // SECURITY FIX: Remove any client-sent X-User-* headers to prevent spoofing
+            // SECURITY FIX: Check for client-sent X-User-* headers to prevent spoofing
             // Only the Gateway should inject these headers from validated JWT
-            ServerHttpRequest.Builder requestBuilder = request.mutate();
-            requestBuilder.removeHeader("X-User-Id");
-            requestBuilder.removeHeader("X-User-Role");
-            requestBuilder.removeHeader("x-user-id");
-            requestBuilder.removeHeader("x-user-role");
-            ServerHttpRequest cleanedRequest = requestBuilder.build();
+            // If client sends these headers, we reject the request
+            if (request.getHeaders().containsKey("X-User-Id") || 
+                request.getHeaders().containsKey("X-User-Role") ||
+                request.getHeaders().containsKey("x-user-id") || 
+                request.getHeaders().containsKey("x-user-role")) {
+                log.warn("⚠️ Client attempted to send X-User-* headers - possible spoofing attack!");
+                return onError(exchange, "Invalid request headers", HttpStatus.BAD_REQUEST);
+            }
 
-            // Check if Authorization header is present (use original request to get headers before cleanup)
-            if (!request.getHeaders().containsKey(HttpHeaders.AUTHORIZATION)) {
+            // Check if Authorization header is present
             if (!request.getHeaders().containsKey(HttpHeaders.AUTHORIZATION)) {
                 log.warn("⚠️ Missing Authorization header for path: {}", request.getPath());
                 return onError(exchange, "Missing Authorization header", HttpStatus.UNAUTHORIZED);

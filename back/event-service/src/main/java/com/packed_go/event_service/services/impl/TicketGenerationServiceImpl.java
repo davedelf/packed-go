@@ -1,11 +1,10 @@
 package com.packed_go.event_service.services.impl;
 
 import com.packed_go.event_service.dto.OrderPaidEventDTO;
-import com.packed_go.event_service.dto.OrderPaidEventDTO.ConsumptionItemDTO;
 import com.packed_go.event_service.dto.OrderPaidEventDTO.OrderItemDTO;
-import com.packed_go.event_service.dto.ticket.ConsumptionItemDTO;
-import com.packed_go.event_service.dto.ticket.CreateTicketWithConsumptionsRequest;
-import com.packed_go.event_service.dto.ticket.TicketWithConsumptionsResponse;
+import com.packed_go.event_service.dtos.ticket.ConsumptionItemDTO;
+import com.packed_go.event_service.dtos.ticket.CreateTicketWithConsumptionsRequest;
+import com.packed_go.event_service.dtos.ticket.TicketWithConsumptionsResponse;
 import com.packed_go.event_service.services.TicketGenerationService;
 import com.packed_go.event_service.services.TicketService;
 import lombok.RequiredArgsConstructor;
@@ -58,6 +57,7 @@ public class TicketGenerationServiceImpl implements TicketGenerationService {
                         consumptions = item.getConsumptions().stream()
                                 .map(cons -> ConsumptionItemDTO.builder()
                                         .consumptionId(cons.getConsumptionId())
+                                        .consumptionName(cons.getConsumptionName())
                                         .priceAtPurchase(cons.getPriceAtPurchase())
                                         .quantity(cons.getQuantity())
                                         .build())

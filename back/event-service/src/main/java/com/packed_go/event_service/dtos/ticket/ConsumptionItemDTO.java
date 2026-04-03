@@ -23,7 +23,6 @@ public class ConsumptionItemDTO {
     @NotNull(message = "Consumption ID is required")
     private Long consumptionId;
 
-    @NotBlank(message = "Consumption name is required")
     private String consumptionName;
 
     @NotNull(message = "Quantity is required")

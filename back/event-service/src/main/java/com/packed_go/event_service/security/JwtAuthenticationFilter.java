@@ -1,95 +1,58 @@
 package com.packed_go.event_service.security;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.io.Decoders;
-import io.jsonwebtoken.security.Keys;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+import org.springframework.web.filter.OncePerRequestFilter;
 
-import javax.crypto.SecretKey;
+import java.io.IOException;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
- * JWT Utility para event-service
- * Valida tokens generados por auth-service
+ * JWT Authentication Filter para event-service
+ * Valida tokens JWT y establece la autenticación en el SecurityContext
  */
 @Component
 @Slf4j
-public class JwtTokenValidator {
+public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    @Value("${app.jwt.secret}")
-    private String jwtSecret;
+    @Autowired
+    private JwtTokenValidator jwtTokenValidator;
 
-    private SecretKey getSigningKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(jwtSecret);
-        return Keys.hmacShaKeyFor(keyBytes);
-    }
-
-    public boolean validateToken(String token) {
-        try {
-            Jwts.parserBuilder()
-                    .setSigningKey(getSigningKey())
-                    .build()
-                    .parseClaimsJws(token);
-            return true;
-        } catch (Exception ex) {
-            log.error("Invalid JWT token: {}", ex.getMessage());
-            return false;
-        }
-    }
-
-    public String getUsernameFromToken(String token) {
-        Claims claims = Jwts.parserBuilder()
-                .setSigningKey(getSigningKey())
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
-        return claims.getSubject();
-    }
-
-    public Long getUserIdFromToken(String token) {
-        Claims claims = Jwts.parserBuilder()
-                .setSigningKey(getSigningKey())
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
-        return claims.get("userId", Long.class);
-    }
-
-    public String getRoleFromToken(String token) {
-        Claims claims = Jwts.parserBuilder()
-                .setSigningKey(getSigningKey())
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
-        return claims.get("role", String.class);
-    }
-
-    @SuppressWarnings("unchecked")
-    public List<String> getAuthoritiesFromToken(String token) {
-        Claims claims = Jwts.parserBuilder()
-                .setSigningKey(getSigningKey())
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
-        return claims.get("authorities", List.class);
-    }
-
-    public String getEmailFromToken(String token) {
-        Claims claims = Jwts.parserBuilder()
-                .setSigningKey(getSigningKey())
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
-        return claims.get("email", String.class);
-    }
-
-    public String extractTokenFromHeader(String authHeader) {
+    @Override
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, 
+                                    FilterChain filterChain) throws ServletException, IOException {
+        
+        String authHeader = request.getHeader("Authorization");
+        
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            return authHeader.substring(7);
+            String token = authHeader.substring(7);
+            
+            if (jwtTokenValidator.validateToken(token)) {
+                Long userId = jwtTokenValidator.getUserIdFromToken(token);
+                String role = jwtTokenValidator.getRoleFromToken(token);
+                List<String> authorities = jwtTokenValidator.getAuthoritiesFromToken(token);
+                
+                List<SimpleGrantedAuthority> grantedAuthorities = authorities != null
+                        ? authorities.stream().map(SimpleGrantedAuthority::new).collect(Collectors.toList())
+                        : List.of(new SimpleGrantedAuthority("ROLE_" + role));
+                
+                UsernamePasswordAuthenticationToken authentication = 
+                        new UsernamePasswordAuthenticationToken(userId, null, grantedAuthorities);
+                
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+                log.debug("User {} authenticated with role {}", userId, role);
+            }
         }
-        return null;
+        
+        filterChain.doFilter(request, response);
     }
 }
