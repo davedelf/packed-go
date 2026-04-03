@@ -697,6 +697,6 @@ Propiedad de PackedGo. Todos los derechos reservados.
 
 <div align="center">
 
-⭐️ Si este proyecto te fue útil, ¡considera给它 una estrella!
+⭐️ Si este proyecto te fue útil, ¡considera darle una estrella!
 
 </div>
