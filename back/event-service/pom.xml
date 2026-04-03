@@ -127,6 +127,12 @@
             <version>3.5.3</version>
         </dependency>
 
+        <!-- RabbitMQ for Outbox Pattern -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-amqp</artifactId>
+        </dependency>
+
 	</dependencies>
 
 	<build>

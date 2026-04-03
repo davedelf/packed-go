@@ -28,6 +28,7 @@ import com.packed_go.order_service.repository.OrderRepository;
 import com.packed_go.order_service.repository.ShoppingCartRepository;
 import com.packed_go.order_service.service.EmailService;
 import com.packed_go.order_service.service.OrderService;
+import com.packed_go.order_service.service.OutboxService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -42,6 +43,7 @@ public class OrderServiceImpl implements OrderService {
     private final PaymentServiceClient paymentServiceClient;
     private final EventServiceClient eventServiceClient;
     private final EmailService emailService;
+    private final OutboxService outboxService;
     
     @Override
     @Transactional
@@ -136,49 +138,73 @@ public class OrderServiceImpl implements OrderService {
                 order.markAsPaid();
                 log.info("Order {} marked as PAID", order.getOrderNumber());
                 
-                // 🎟️ GENERAR TICKETS cuando el pago es aprobado
-                try {
-                    List<TicketWithConsumptionsResponse> generatedTickets = generateTicketsForOrder(order);
-                    
-                    // 📧 ENVIAR EMAIL DE CONFIRMACIÓN con los tickets generados
-                    if (request.getCustomerEmail() != null && !request.getCustomerEmail().isEmpty()) {
-                        emailService.sendOrderConfirmation(order, request.getCustomerEmail(), generatedTickets);
-                    } else {
-                        log.warn("⚠️ No customer email provided in callback. Skipping email confirmation.");
-                    }
-
-                    // 🛒 LIMPIAR CARRITO (Solo los items comprados)
-                    if (order.getCartId() != null) {
-                        cartRepository.findById(order.getCartId()).ifPresent(cart -> {
-                            log.info("🛒 Updating cart {} for user {}", cart.getId(), cart.getUserId());
+                // 📝 CREAR EVENTO EN OUTBOX (Transactional Outbox Pattern)
+                // En lugar de llamar síncronamente a event-service, escribimos el evento
+                // en la tabla outbox. El scheduler lo publicará a RabbitMQ y event-service
+                // lo procesará asíncronamente.
+                String customerEmail = request.getCustomerEmail();
+                
+                // Convertir los items de la orden a formato serializable
+                List<Map<String, Object>> orderItems = order.getItems().stream()
+                        .map(item -> {
+                            Map<String, Object> itemMap = new java.util.HashMap<>();
+                            itemMap.put("eventId", item.getEventId());
+                            itemMap.put("quantity", item.getQuantity());
                             
-                            // Eliminar solo los items que están en la orden pagada
-                            // Usamos removeIf para eliminar de la colección y que OrphanRemoval haga su trabajo
-                            boolean removed = cart.getItems().removeIf(cartItem -> 
-                                order.getItems().stream()
-                                    .anyMatch(orderItem -> orderItem.getEventId().equals(cartItem.getEventId()))
-                            );
+                            // Agregar consumiciones
+                            List<Map<String, Object>> consumptions = item.getConsumptions().stream()
+                                    .map(cons -> {
+                                        Map<String, Object> consMap = new java.util.HashMap<>();
+                                        consMap.put("consumptionId", cons.getConsumptionId());
+                                        consMap.put("consumptionName", cons.getConsumptionName());
+                                        consMap.put("priceAtPurchase", cons.getUnitPrice());
+                                        consMap.put("quantity", cons.getQuantity());
+                                        return consMap;
+                                    })
+                                    .collect(Collectors.toList());
+                            itemMap.put("consumptions", consumptions);
                             
-                            if (removed) {
-                                log.info("✅ Removed purchased items from cart");
-                            }
+                            return itemMap;
+                        })
+                        .collect(Collectors.toList());
+                
+                outboxService.createOrderPaidEvent(
+                        order.getOrderNumber(),
+                        order.getUserId(),
+                        order.getAdminId(),
+                        customerEmail,
+                        orderItems
+                );
+                log.info("Evento ORDER_PAID creado en outbox para orden: {}", order.getOrderNumber());
+                
+                // El email de confirmación ahora se envía después de que tickets se generen
+                // Esto lo manejará event-service cuando procese el evento
+                
+                // 🛒 LIMPIAR CARRITO (Solo los items comprados)
+                if (order.getCartId() != null) {
+                    cartRepository.findById(order.getCartId()).ifPresent(cart -> {
+                        log.info("🛒 Updating cart {} for user {}", cart.getId(), cart.getUserId());
+                        
+                        // Eliminar solo los items que están en la orden pagada
+                        boolean removed = cart.getItems().removeIf(cartItem -> 
+                            order.getItems().stream()
+                                .anyMatch(orderItem -> orderItem.getEventId().equals(cartItem.getEventId()))
+                        );
+                        
+                        if (removed) {
+                            log.info("✅ Removed purchased items from cart");
+                        }
 
-                            // Si el carrito queda vacío, marcarlo como completado
-                            if (cart.getItems().isEmpty()) {
-                                cart.setStatus("COMPLETED");
-                                log.info("🛒 Cart is empty, marking as COMPLETED");
-                            } else {
-                                log.info("🛒 Cart still has items, keeping as ACTIVE");
-                            }
-                            
-                            cartRepository.save(cart);
-                        });
-                    }
-
-                } catch (Exception e) {
-                    log.error("Failed to generate tickets or send email for order {}: {}", order.getOrderNumber(), e.getMessage(), e);
-                    // No lanzamos excepción para no revertir la transacción de la orden
-                    // Los tickets se pueden generar manualmente después si es necesario
+                        // Si el carrito queda vacío, marcarlo como completado
+                        if (cart.getItems().isEmpty()) {
+                            cart.setStatus("COMPLETED");
+                            log.info("🛒 Cart is empty, marking as COMPLETED");
+                        } else {
+                            log.info("🛒 Cart still has items, keeping as ACTIVE");
+                        }
+                        
+                        cartRepository.save(cart);
+                    });
                 }
                 break;
             case "REJECTED":

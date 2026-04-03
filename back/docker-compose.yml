@@ -112,8 +112,14 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5007
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USERNAME=packedgo
+      - RABBITMQ_PASSWORD=packedgo123
     depends_on:
       event-db:
+        condition: service_healthy
+      rabbitmq:
         condition: service_healthy
     networks:
       - packedgo-network
@@ -150,6 +156,10 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5008
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USERNAME=packedgo
+      - RABBITMQ_PASSWORD=packedgo123
     depends_on:
       order-db:
         condition: service_healthy
@@ -157,6 +167,8 @@ services:
         condition: service_started
       auth-service:
         condition: service_started
+      rabbitmq:
+        condition: service_healthy
     networks:
       - packedgo-network
 
@@ -241,6 +253,25 @@ services:
     networks:
       - packedgo-network
 
+  # RabbitMQ for Outbox Pattern
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    ports:
+      - "5672:5672"   # AMQP
+      - "15672:15672" # Management UI
+    environment:
+      RABBITMQ_DEFAULT_USER: packedgo
+      RABBITMQ_DEFAULT_PASS: packedgo123
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_running"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - packedgo-network
+
 networks:
   packedgo-network:
     driver: bridge
@@ -251,3 +282,4 @@ volumes:
   event_db_data:
   order_db_data:
   payment_db_data:
+  rabbitmq_data:
