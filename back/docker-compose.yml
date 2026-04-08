@@ -157,6 +157,7 @@ services:
       - ./order-service/.env
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+      - JWT_SECRET=KuBhDtfFr/N7GPbvfgxbd7TIiG7S+WrsyrV3vj5wjOj8B2arS8bZnlp7N3RDp5Ig
       - JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5008
       - RABBITMQ_HOST=rabbitmq
       - RABBITMQ_PORT=5672

@@ -61,7 +61,7 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authz -> authz
                         // Authentication endpoints - Public
-                        .requestMatchers("/auth/admin/login", "/auth/customer/login", "/auth/employee/login", "/auth/customer/register", "/auth/admin/register", "/auth/validate", "/auth/refresh", "/auth/logout", "/auth/password/reset", "/auth/password/change", "/auth/forgot-password", "/auth/reset-password", "/auth/verify-email", "/auth/resend-verification", "/users/exists/**", "/actuator/**", "/v3/api-docs/**", "/swagger-ui/**", "/api/payments/mock/**").permitAll()
+                        .requestMatchers("/auth/admin/login", "/auth/customer/login", "/auth/employee/login", "/auth/customer/register", "/auth/admin/register", "/auth/validate", "/auth/refresh", "/auth/logout", "/auth/password/reset", "/auth/password/change", "/auth/forgot-password", "/auth/reset-password", "/auth/verify-email", "/auth/resend-verification", "/users/exists/**", "/api/actuator/health", "/api/actuator/**", "/actuator/health", "/actuator/**", "/v3/api-docs/**", "/swagger-ui/**", "/api/payments/mock/**").permitAll()
                         .anyRequest().authenticated())
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

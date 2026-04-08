@@ -28,6 +28,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private JwtTokenValidator jwtTokenValidator;
 
     @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getRequestURI();
+        // Skip JWT filter for public endpoints
+        return path.contains("/event-service/event") && request.getMethod().equals("GET")
+            || path.contains("/event-service/consumption")
+            || path.contains("/event-service/pass")
+            || path.contains("/actuator")
+            || path.contains("/internal");
+    }
+
+    @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, 
                                     FilterChain filterChain) throws ServletException, IOException {
         
