@@ -10,7 +10,7 @@ services:
       - "8080:8080"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-      - JWT_SECRET=mySecretKey123456789PackedGoAuth2025VerySecureKey
+      - JWT_SECRET=KuBhDtfFr/N7GPbvfgxbd7TIiG7S+WrsyrV3vj5wjOj8B2arS8bZnlp7N3RDp5Ig
     depends_on:
       - auth-service
       - users-service
@@ -112,6 +112,7 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5007
+      - JWT_SECRET=KuBhDtfFr/N7GPbvfgxbd7TIiG7S+WrsyrV3vj5wjOj8B2arS8bZnlp7N3RDp5Ig
       - RABBITMQ_HOST=rabbitmq
       - RABBITMQ_PORT=5672
       - RABBITMQ_USERNAME=packedgo
@@ -207,7 +208,7 @@ services:
       - DB_URL=jdbc:postgresql://payment-db:5432/payment_db
       - DB_USERNAME=payment_user
       - DB_PASSWORD=payment_password
-      - JWT_SECRET=mySecretKey123456789PackedGoAuth2025VerySecureKey
+      - JWT_SECRET=KuBhDtfFr/N7GPbvfgxbd7TIiG7S+WrsyrV3vj5wjOj8B2arS8bZnlp7N3RDp5Ig
       - ORDER_SERVICE_URL=http://order-service:8084
     depends_on:
       payment-db:
