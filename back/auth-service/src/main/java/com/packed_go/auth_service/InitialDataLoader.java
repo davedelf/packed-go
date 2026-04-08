@@ -38,6 +38,7 @@ public class InitialDataLoader implements CommandLineRunner {
                     .isActive(true)
                     .isEmailVerified(true)
                     .isDocumentVerified(true)
+                    .userProfileId(1L)
                     .build();
 
             authUserRepository.save(superAdmin);
@@ -58,6 +59,7 @@ public class InitialDataLoader implements CommandLineRunner {
                     .isActive(true)
                     .isEmailVerified(true)
                     .isDocumentVerified(true)
+                    .userProfileId(2L)
                     .build();
 
             authUserRepository.save(admin);
@@ -75,6 +77,7 @@ public class InitialDataLoader implements CommandLineRunner {
                     .isActive(true)
                     .isEmailVerified(true)
                     .isDocumentVerified(true)
+                    .userProfileId(3L)
                     .build();
 
             authUserRepository.save(employee);
@@ -93,6 +96,7 @@ public class InitialDataLoader implements CommandLineRunner {
                     .isActive(true)
                     .isEmailVerified(true)
                     .isDocumentVerified(true)
+                    .userProfileId(4L)
                     .build();
 
             authUserRepository.save(customer);

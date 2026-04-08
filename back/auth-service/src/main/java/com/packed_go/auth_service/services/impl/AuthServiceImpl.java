@@ -390,21 +390,20 @@ public java.util.Map<String, Object> verifyEmail(String token) {
                 .failedLoginAttempts(0)
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
-                .userProfileId(0L)
+                .userProfileId(System.currentTimeMillis()) // ID temporal único
                 .build();
 
         AuthUser savedAdmin = authUserRepository.save(newAdmin);
         log.info("Admin registered successfully with ID: {}", savedAdmin.getId());
         
-        // ✅ Email de verificación activado
-        try {
-            sendVerificationEmail(savedAdmin);
-            log.info("Verification email sent for admin ID: {}", savedAdmin.getId());
-        } catch (Exception e) {
-            log.error("Failed to send verification email for admin ID: {}", savedAdmin.getId(), e);
-            // No lanzamos la excepción para que el registro continúe
-        }
-        log.info("✅ Admin registered - Email verification required - ID: {}", savedAdmin.getId());
+        // ✅ En desarrollo no se envía email de verificación
+        // try {
+        //     sendVerificationEmail(savedAdmin);
+        //     log.info("Verification email sent for admin ID: {}", savedAdmin.getId());
+        // } catch (Exception e) {
+        //     log.error("Failed to send verification email for admin ID: {}", savedAdmin.getId(), e);
+        // }
+        log.info("✅ Admin registered successfully - ID: {}", savedAdmin.getId());
         
         return savedAdmin;
     }
