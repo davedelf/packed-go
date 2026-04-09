@@ -2,8 +2,8 @@
 
 > Plataforma completa de microservicios para la gestión de eventos, venta de tickets, procesamiento de pagos y analytics en tiempo real.
 
-**Versión**: 2.1  
-**Última Actualización**: 15 de Diciembre de 2025  
+**Versión**: 3.0  
+**Última Actualización**: Abril 2026  
 **Estado**: ✅ Sistema Completamente Operativo
 
 ---
@@ -59,60 +59,85 @@
 └────────────────────────────┬─────────────────────────────────────┘
                              │ HTTP + JWT Bearer Token
                              ▼
-          ┌────────────────────────────────────────────┐
-          │          API GATEWAY (Spring Cloud)         │
-          │              Puerto: 8080                   │
-          │                                              │
-          │  ✅ CORS: allowedOrigins: localhost:3000   │
-          │  ✅ JWT Validation (firma + expiración)    │
-          │  ✅ Header Injection (X-User-Id, X-User-Role)│
-          │  ✅ Public Endpoint Filter                  │
-          │  ✅ Route Predicates a microservicios      │
-          └─────────────────┬──────────────────────────┘
-                            │
-     ┌──────────┬───────────┼───────────┬──────────┬─────────┐
-     │          │           │           │          │         │
+           ┌────────────────────────────────────────────┐
+           │          API GATEWAY (Spring Cloud)         │
+           │              Puerto: 8080                   │
+           │                                              │
+           │  ✅ CORS: allowedOrigins: localhost:3000    │
+           │  ✅ JWT Validation (firma + expiración)    │
+           │  ✅ Header Injection (X-User-Id, X-User-Role)│
+           │  ✅ Anti-Spoofing (remueve headers cliente)│
+           │  ✅ Public Endpoint Filter                  │
+           │  ✅ Route Predicates a microservicios      │
+           └─────────────────┬──────────────────────────┘
+                             │
+      ┌──────────┬───────────┼───────────┬──────────┬─────────┐
+      │          │           │           │          │         │
 ┌────▼───┐ ┌────▼───┐ ┌────▼───┐ ┌────▼───┐ ┌────▼───┐ ┌──────▼────┐
 │  Auth  │ │ Users  │ │ Event  │ │ Order  │ │Payment │ │ Analytics │
 │Service │ │Service │ │Service │ │Service │ │Service │ │ Service   │
 │ :8081  │ │ :8082  │ │ :8086  │ │ :8084  │ │ :8085  │ │   :8087   │
 │        │ │        │ │        │ │        │ │        │ │            │
-│ ✅ CORS │ │ ✅ CORS│ │ ❌ CORS│ │ ❌ CORS│ │ ✅ CORS│ │ ❌ CORS   │
+│ ✅ CORS │ │ ✅ CORS│ │ ✅ CORS│ │ ✅ CORS│ │ ✅ CORS│ │ ✅ CORS   │
 │disabled│ │disabled│ │disabled│ │disabled│ │disabled│ │ disabled   │
 │        │ │        │ │        │ │        │ │        │ │            │
-│ ✅ Spring│ │ ✅Spring│ │ ❌ No  │ │ ❌ No  │ │ ✅Spring│ │ ❌ No     │
+│ ✅Spring│ │ ✅Spring│ │ ✅Spring│ │ ✅Spring│ │ ✅Spring│ │ ✅Spring │
 │Security│ │Security│ │Security│ │Security│ │Security│ │ Security  │
 └───┬────┘ └───┬────┘ └───┬────┘ └───┬────┘ └───┬────┘ └─────┬──────┘
     │          │          │          │          │            │
-┌───▼────┐ ┌───▼────┐ ┌───▼────┐ ┌───▼────┐ ┌───▼────┐      │
-│auth_db │ │users_db│ │event_db│ │order_db│ │payment │   (Stateless)
-│:5433  │ │ :5434  │ │ :5435  │ │ :5436  │ │ :5437  │      │
-│PG 15  │ │ PG 15  │ │ PG 15  │ │ PG 15  │ │ PG 15  │      │
-└───────┘ └───────┘ └───────┘ └───────┘ └────────┘      │
-                                                          │
-                    Comunicación entre Servicios:          │
-                    WebClient (Spring WebFlux)            │
+    │          │          │          │          │            │
+    └──────────┼──────────┼──────────┼──────────┘            │
+               │          │          │                       │
+    ┌──────────▼──────────▼──────────▼───────┐                │
+    │     POSTGRES CENTRAL (:5432)           │                │
+    │  ┌─────────┬─────────┬────┬────────┐  │                │
+    │  │auth_db  │users_db │event_db    │  │                │
+    │  │         │         │order_db    │  │                │
+    │  │         │         │payment_db  │  │                │
+    │  └─────────┴─────────┴────┴────────┘  │                │
+    │  (1 contenedor vs 5 anteriores)       │                │
+    └───────────────────────────────────────┘                │
+                                                           │
+    ┌─────────────────────────────────────┐                  │
+    │        RABBITMQ (:5672)             │                  │
+    │                                     │                  │
+    │  outbox-pattern (async tickets)    │                  │
+    │  DLQ (Dead Letter Queue)            │                  │
+    └─────────────────────────────────────┘                  │
+               │                                             │
+               │         Comunicación Asíncrona:             │
+               │    order-service ──► RabbitMQ ──► event-service
+                │         (Transactional Outbox Pattern)    │
 ```
 
 ### Microservicios
 
 | Servicio | Puerto | Base de Datos | Responsabilidad |
 |----------|--------|----------------|-----------------|
-| **API Gateway** | 8080 | N/A | Enrutamiento, JWT, CORS |
-| **auth-service** | 8081 | auth_db (:5433) | Autenticación y usuarios |
-| **users-service** | 8082 | users_db (:5434) | Perfiles y empleados |
-| **event-service** | 8086 | event_db (:5435) | Eventos y tickets |
-| **order-service** | 8084 | order_db (:5436) | Carritos y órdenes |
-| **payment-service** | 8085 | payment_db (:5437) | Pagos con Stripe |
+| **API Gateway** | 8080 | N/A | Enrutamiento, JWT, CORS, Anti-Spoofing |
+| **auth-service** | 8081 | auth_db (postgres-central:5432) | Autenticación y usuarios |
+| **users-service** | 8082 | users_db (postgres-central:5432) | Perfiles y empleados |
+| **event-service** | 8086 | event_db (postgres-central:5432) | Eventos, tickets + Listener RabbitMQ |
+| **order-service** | 8084 | order_db (postgres-central:5432) | Carritos, órdenes + Outbox Publisher |
+| **payment-service** | 8085 | payment_db (postgres-central:5432) | Pagos con Stripe |
 | **analytics-service** | 8087 | Stateless | Dashboard y estadísticas |
+
+### Infraestructura
+
+| Componente | Puerto | Descripción |
+|------------|--------|-------------|
+| **PostgreSQL Central** | 5432 | 1 contenedor con 5 databases lógicas (ahorro ~600MB RAM) |
+| **RabbitMQ** | 5672/15672 | Message broker para Transactional Outbox Pattern |
 
 ### Principios de Arquitectura
 
 1. **Separación de Responsabilidades**: Cada microservicio tiene una responsabilidad única
-2. **Independencia de Datos**: Cada servicio tiene su propia base de datos
-3. **Comunicación Reactiva**: Uso de WebClient para comunicación entre servicios
+2. **Independencia de Datos**: Cada servicio tiene su propia base de datos lógica
+3. **Comunicación Síncrona**: WebClient (Spring WebFlux) para llamadas REST entre servicios
+4. **Comunicación Asíncrona**: RabbitMQ + Transactional Outbox Pattern para eventos de pago
 4. **Autenticación Centralizada**: API Gateway valida JWT e inyecta headers
 5. **CORS Centralizado**: Solo el API Gateway maneja CORS
+6. **Anti-Spoofing**: API Gateway remueve headers X-User-* spoofeados del cliente
 
 ---
 
@@ -153,6 +178,16 @@
 - ✅ Webhooks para confirmación de pagos
 - ✅ Estados: PENDING → APPROVED/REJECTED
 - ✅ Verificación de firma en webhooks
+
+### 6. Transacciones Distribuidas (Outbox Pattern)
+
+- ✅ Transactional Outbox Pattern para consistencia eventual
+- ✅ Comunicación asíncrona order-service → event-service vía RabbitMQ
+- ✅ Retry automático con exponential backoff (2s → 4s → 8s)
+- ✅ Dead Letter Queue (DLQ) para mensajes fallidos
+- ✅ Generación automática de tickets tras pago confirmado
+
+> **Nota**: Resuelve el problema de transacciones distribuidas síncronas (carrito → checkout → pago → tickets)
 
 ### 6. Dashboard y Analytics
 
@@ -209,10 +244,12 @@
 | **Framework** | Spring Boot | 3.5.6/3.5.7 |
 | **Lenguaje** | Java | 17 |
 | **API Gateway** | Spring Cloud Gateway | 2023.0.0 |
-| **Base de Datos** | PostgreSQL | 15-alpine |
+| **Base de Datos** | PostgreSQL | 15-alpine (1 contenedor con 5 DBs) |
+| **Message Broker** | RabbitMQ | 3-management-alpine |
 | **Autenticación** | JWT (jjwt) | 0.12.5/0.12.6 |
 | **Pasarela de Pago** | Stripe SDK | 26.7.0 |
 | **Cliente HTTP** | Spring WebFlux | 3.5.6 |
+| **Retry** | Spring Retry | 3.x |
 | **Contenedores** | Docker + Docker Compose | Latest |
 
 ### Frontend
@@ -329,11 +366,11 @@ STRIPE_WEBHOOK_SECRET=whsec_your_webhook_secret
 FRONTEND_URL=http://localhost:3000
 ```
 
-### Paso 3: Iniciar las Bases de Datos
+### Paso 3: Iniciar la Infraestructura
 
 ```bash
 cd back
-docker-compose up -d auth-db users-db event-db order-db payment-db
+docker-compose up -d postgres-central rabbitmq
 ```
 
 ### Paso 4: Compilar los Microservicios
@@ -598,10 +635,10 @@ ng test --code-coverage
 | **API Gateway** | ✅ | `allowedOrigins: http://localhost:3000` |
 | auth-service | ❌ | `.cors(cors -> cors.disable())` |
 | users-service | ❌ | `.cors(cors -> cors.disable())` |
+| event-service | ❌ | `.cors(cors -> cors.disable())` |
+| order-service | ❌ | `.cors(cors -> cors.disable())` |
 | payment-service | ❌ | `.cors(cors -> cors.disable())` |
-| event-service | ❌ | Sin CorsConfig.java |
-| order-service | ❌ | Sin CorsConfig.java |
-| analytics-service | ❌ | Sin Spring Security |
+| analytics-service | ❌ | `.cors(cors -> cors.disable())` |
 
 **NO agregar**:
 - ❌ Archivos `CorsConfig.java` en microservicios
@@ -617,12 +654,35 @@ Capa 1: API Gateway
   - Valida JWT (firma + expiración)
   - Extrae userId y role
   - Inyecta headers: X-User-Id, X-User-Role
+  - REMUEVE headers spoofeados del cliente (Anti-Spoofing)
 
 Capa 2: Microservicios
+  - Spring Security en TODOS los servicios
   - Leen headers inyectados
   - Aplican reglas de negocio
   - No re-validan JWT (confían en Gateway)
 ```
+
+### Transactional Outbox Pattern
+
+El sistema usa el patrón Outbox para resolver transacciones distribuidas:
+
+```
+Orden Pagada → OutboxEvent (BD order-service) 
+             → OutboxPublisher (RabbitMQ) 
+             → event-service listener 
+             → Generación de tickets
+```
+
+**Configuración**:
+- Exchange: `packedgo.exchange`
+- Queue: `packedgo.order.paid`
+- Retry: 3 intentos con exponential backoff (2s → 4s → 8s)
+- DLQ: `packedgo.ticket.dlq` para mensajes fallidos
+
+**Dependencias requeridas**:
+- `spring-boot-starter-amqp`
+- `spring-retry` + `@EnableRetry` en aplicación principal
 
 ---
 
@@ -671,11 +731,14 @@ Capa 2: Microservicios
 ### Error: Cannot connect to database
 
 ```bash
-# Verificar que bases de datos están corriendo
-docker-compose ps | grep db
+# Verificar que PostgreSQL Central está corriendo
+docker-compose ps postgres-central
 
-# Reiniciar bases de datos
-docker-compose restart auth-db users-db event-db order-db payment-db
+# Ver logs de PostgreSQL
+docker-compose logs postgres-central
+
+# Reiniciar PostgreSQL
+docker-compose restart postgres-central
 ```
 
 ---
@@ -685,7 +748,7 @@ docker-compose restart auth-db users-db event-db order-db payment-db
 **Desarrollador**: David Delfino  
 **Email**: daviddelfino97@hotmail.com  
 **Proyecto**: PackedGo - Sistema de Gestión de Eventos  
-**Última Actualización**: 15 de Diciembre de 2025
+**Última Actualización**: Abril 2026
 
 ---
 

@@ -21,6 +21,26 @@ services:
     networks:
       - packedgo-network
 
+  # PostgreSQL Centralizado (1 contenedor con 5 databases lógicas)
+  # Ahorro: ~600MB RAM vs 5 contenedores separados
+  postgres-central:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: packedgo_admin
+      POSTGRES_PASSWORD: packedgo_admin_pass
+      POSTGRES_DB: postgres  # DB por defecto
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_central_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U packedgo_admin"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - packedgo-network
+
   # Auth Service
   auth-service:
     build:
@@ -34,30 +54,14 @@ services:
       - SPRING_PROFILES_ACTIVE=docker
       - JWT_SECRET=KuBhDtfFr/N7GPbvfgxbd7TIiG7S+WrsyrV3vj5wjOj8B2arS8bZnlp7N3RDp5Ig
       - JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
+      - DATABASE_URL=jdbc:postgresql://postgres-central:5432/auth_db
+      - DATABASE_USER=packedgo_admin
+      - DATABASE_PASSWORD=packedgo_admin_pass
     depends_on:
-      auth-db:
+      postgres-central:
         condition: service_healthy
       users-service:
         condition: service_started
-    networks:
-      - packedgo-network
-
-  # Auth Database
-  auth-db:
-    image: postgres:15-alpine
-    environment:
-      POSTGRES_DB: auth_db
-      POSTGRES_USER: auth_user
-      POSTGRES_PASSWORD: auth_password
-    ports:
-      - "5433:5432"
-    volumes:
-      - auth_db_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U auth_user -d auth_db"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
     networks:
       - packedgo-network
 
@@ -75,30 +79,33 @@ services:
       - SPRING_PROFILES_ACTIVE=docker
       - JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5006
       - EVENT_SERVICE_URL=http://event-service:8086/api
+      - DATABASE_URL=jdbc:postgresql://postgres-central:5432/users_db
+      - DATABASE_USER=packedgo_admin
+      - DATABASE_PASSWORD=packedgo_admin_pass
     depends_on:
-      users-db:
+      postgres-central:
         condition: service_healthy
     networks:
       - packedgo-network
 
-  # Users Database
-  users-db:
-    image: postgres:15-alpine
-    environment:
-      POSTGRES_DB: users_db
-      POSTGRES_USER: users_user
-      POSTGRES_PASSWORD: users_password
-    ports:
-      - "5434:5432"
-    volumes:
-      - users_db_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U users_user -d users_db"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    networks:
-      - packedgo-network
+  # Users Database (ELIMINADO - ahora es users_db en postgres-central)
+  # users-db:
+  #   image: postgres:15-alpine
+  #   environment:
+  #     POSTGRES_DB: users_db
+  #     POSTGRES_USER: users_user
+  #     POSTGRES_PASSWORD: users_password
+  #   ports:
+  #     - "5434:5432"
+  #   volumes:
+  #     - users_db_data:/var/lib/postgresql/data
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U users_user -d users_db"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
+  #   networks:
+  #     - packedgo-network
 
   # Event Service
   event-service:
@@ -118,32 +125,35 @@ services:
       - RABBITMQ_PORT=5672
       - RABBITMQ_USERNAME=packedgo
       - RABBITMQ_PASSWORD=packedgo123
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-central:5432/event_db
+      - SPRING_DATASOURCE_USERNAME=packedgo_admin
+      - SPRING_DATASOURCE_PASSWORD=packedgo_admin_pass
     depends_on:
-      event-db:
+      postgres-central:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
     networks:
       - packedgo-network
 
-  # Event Database
-  event-db:
-    image: postgres:15-alpine
-    environment:
-      POSTGRES_DB: event_db
-      POSTGRES_USER: event_user
-      POSTGRES_PASSWORD: event_password
-    ports:
-      - "5435:5432"
-    volumes:
-      - event_db_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U event_user -d event_db"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    networks:
-      - packedgo-network
+  # Event Database (ELIMINADO - ahora es event_db en postgres-central)
+  # event-db:
+  #   image: postgres:15-alpine
+  #   environment:
+  #     POSTGRES_DB: event_db
+  #     POSTGRES_USER: event_user
+  #     POSTGRES_PASSWORD: event_password
+  #   ports:
+  #     - "5435:5432"
+  #   volumes:
+  #     - event_db_data:/var/lib/postgresql/data
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U event_user -d event_db"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
+  #   networks:
+  #     - packedgo-network
 
   # Order Service
   order-service:
@@ -163,8 +173,11 @@ services:
       - RABBITMQ_PORT=5672
       - RABBITMQ_USERNAME=packedgo
       - RABBITMQ_PASSWORD=packedgo123
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-central:5432/order_db
+      - SPRING_DATASOURCE_USERNAME=packedgo_admin
+      - SPRING_DATASOURCE_PASSWORD=packedgo_admin_pass
     depends_on:
-      order-db:
+      postgres-central:
         condition: service_healthy
       event-service:
         condition: service_started
@@ -175,24 +188,24 @@ services:
     networks:
       - packedgo-network
 
-  # Order Database
-  order-db:
-    image: postgres:15-alpine
-    environment:
-      POSTGRES_DB: order_db
-      POSTGRES_USER: order_user
-      POSTGRES_PASSWORD: order_password
-    ports:
-      - "5436:5432"
-    volumes:
-      - order_db_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U order_user -d order_db"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    networks:
-      - packedgo-network
+  # Order Database (ELIMINADO - ahora es order_db en postgres-central)
+  # order-db:
+  #   image: postgres:15-alpine
+  #   environment:
+  #     POSTGRES_DB: order_db
+  #     POSTGRES_USER: order_user
+  #     POSTGRES_PASSWORD: order_password
+  #   ports:
+  #     - "5436:5432"
+  #   volumes:
+  #     - order_db_data:/var/lib/postgresql/data
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U order_user -d order_db"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
+  #   networks:
+  #     - packedgo-network
 
   # Payment Service
   payment-service:
@@ -207,35 +220,35 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5009
-      - DB_URL=jdbc:postgresql://payment-db:5432/payment_db
-      - DB_USERNAME=payment_user
-      - DB_PASSWORD=payment_password
+      - DB_URL=jdbc:postgresql://postgres-central:5432/payment_db
+      - DB_USERNAME=packedgo_admin
+      - DB_PASSWORD=packedgo_admin_pass
       - JWT_SECRET=KuBhDtfFr/N7GPbvfgxbd7TIiG7S+WrsyrV3vj5wjOj8B2arS8bZnlp7N3RDp5Ig
       - ORDER_SERVICE_URL=http://order-service:8084
     depends_on:
-      payment-db:
+      postgres-central:
         condition: service_healthy
     networks:
       - packedgo-network
 
-  # Payment Database
-  payment-db:
-    image: postgres:15-alpine
-    environment:
-      POSTGRES_DB: payment_db
-      POSTGRES_USER: payment_user
-      POSTGRES_PASSWORD: payment_password
-    ports:
-      - "5437:5432"
-    volumes:
-      - payment_db_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U payment_user -d payment_db"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    networks:
-      - packedgo-network
+  # Payment Database (ELIMINADO - ahora es payment_db en postgres-central)
+  # payment-db:
+  #   image: postgres:15-alpine
+  #   environment:
+  #     POSTGRES_DB: payment_db
+  #     POSTGRES_USER: payment_user
+  #     POSTGRES_PASSWORD: payment_password
+  #   ports:
+  #     - "5437:5432"
+  #   volumes:
+  #     - payment_db_data:/var/lib/postgresql/data
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U payment_user -d payment_db"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
+  #   networks:
+  #     - packedgo-network
 
   # Analytics Service
   analytics-service:
@@ -280,9 +293,5 @@ networks:
     driver: bridge
 
 volumes:
-  auth_db_data:
-  users_db_data:
-  event_db_data:
-  order_db_data:
-  payment_db_data:
+  postgres_central_data:
   rabbitmq_data:
