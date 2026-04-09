@@ -1,765 +1,324 @@
-# 🎯 PackedGo - Sistema de Gestión de Eventos
+# 🎟️ PackedGo - Sistema de Gestión de Eventos
 
-> Plataforma completa de microservicios para la gestión de eventos, venta de tickets, procesamiento de pagos y analytics en tiempo real.
+<div align="center">
 
-**Versión**: 3.0  
-**Última Actualización**: Abril 2026  
-**Estado**: ✅ Sistema Completamente Operativo
+[![Java](https://img.shields.io/badge/Java-17+-ED8B00?style=flat&logo=java&logoColor=white)](https://www.java.com/)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5.x-6DB33F?style=flat&logo=spring-boot&logoColor=white)](https://spring.io/projects/spring-boot)
+[![Angular](https://img.shields.io/badge/Angular-19-DD0031?style=flat&logo=angular&logoColor=white)](https://angular.io/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-336791?style=flat&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![RabbitMQ](https://img.shields.io/badge/RabbitMQ-3.x-FF6600?style=flat&logo=rabbitmq&logoColor=white)](https://www.rabbitmq.com/)
+[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=flat&logo=docker&logoColor=white)](https://www.docker.com/)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
----
+**Plataforma completa de microservicios para gestión de eventos, venta de tickets y analytics en tiempo real**
 
-## 📋 Tabla de Contenidos
-
-1. [Resumen del Proyecto](#resumen-del-proyecto)
-2. [Arquitectura del Sistema](#arquitectura-del-sistema)
-3. [Funcionalidades Principales](#funcionalidades-principales)
-4. [Stack Tecnológico](#stack-tecnológico)
-5. [Estructura del Proyecto](#estructura-del-proyecto)
-6. [Instalación y Configuración](#instalación-y-configuración)
-7. [Guía de Uso](#guía-de-uso)
-8. [Guía de Contribución](#guía-de-contribución)
-9. [Licencia y Créditos](#licencia-y-créditos)
+</div>
 
 ---
 
-## 📝 Resumen del Proyecto
+## 📋 Índice
 
-**PackedGo** es una plataforma integral de gestión de eventos desarrollada con arquitectura de microservicios que permite a organizadores crear eventos, vender tickets, gestionar consumiciones y analizar métricas en tiempo real.
-
-### Características Principales
-
-- 🎫 **Gestión de Eventos**: CRUD completo de eventos multi-tenant
-- 💳 **Sistema de Pagos**: Integración con Stripe para pagos seguros
-- 🛒 **Carrito de Compras**: Sistema de carrito con expiración automática
-- 📊 **Analytics en Tiempo Real**: Dashboard con métricas de negocio
-- 👷 **Gestión de Empleados**: Sistema de empleados para validación de tickets
-- 🔐 **Autenticación JWT**: Sistema robusto con roles diferenciados
-- 📱 **Validación QR**: Sistema de validación mediante códigos QR
-- 🏢 **Multi-tenant**: Soporte para múltiples organizadores independientes
-
-### Roles de Usuario
-
-| Rol | Descripción | Permisos |
-|-----|-------------|----------|
-| **CUSTOMER** | Cliente que compra tickets | Comprar tickets, ver perfil, ver eventos |
-| **ADMIN** | Organizador de eventos | CRUD eventos, ver estadísticas, gestionar empleados |
-| **EMPLOYEE** | Empleado de eventos | Validar tickets, registrar consumos |
-| **SUPER_ADMIN** | Administrador del sistema | Acceso completo, ver datos de todos los admins |
+1. [Acerca del Proyecto](#-acerca-del-proyecto)
+2. [Características](#-características)
+3. [Arquitectura](#-arquitectura)
+4. [Stack Tecnológico](#-stack-tecnológico)
+5. [Primeros Pasos](#-primeros-pasos)
+6. [Configuración](#-configuración)
+7. [API Endpoints](#-api-endpoints)
+8. [Contribución](#-contribución)
+9. [Licencia](#-licencia)
 
 ---
 
-## 🏗️ Arquitectura del Sistema
+## 🎯 Acerca del Proyecto
 
-### Diagrama de Arquitectura
+PackedGo es una plataforma de gestión de eventos desarrollada con **arquitectura de microservicios** que permite a organizadores crear eventos, vender tickets, gestionar consumiciones y analizar métricas en tiempo real.
+
+### ¿Por qué este proyecto?
+
+- ✅ **Escalabilidad**: Cada microservicio puede escalar independientemente
+- ✅ **Mantenibilidad**: Código modular, fácil de entender y extender
+- ✅ **Resiliencia**: Fallo en un servicio no afecta a los demás
+- ✅ **Moderno**: Spring Boot 3.5 + Angular 19 + Java 17
+- ✅ **Patterns**: Implementa Transactional Outbox Pattern para consistencia eventual
+
+---
+
+## ✨ Características
+
+| Módulo | Funcionalidades |
+|--------|----------------|
+| **Eventos** | CRUD completo, categorías, imágenes, capacidad máxima |
+| **Tickets** | Generación QR, validación de entrada única, control de stock |
+| **Pagos** | Stripe integration, webhooks, estados PENDING/APPROVED/REJECTED |
+| **Carrito** | Multi-item, expiración automática (10 min), validación de stock |
+| **Empleados** | Asignación a eventos, validación QR, registro de consumos |
+| **Analytics** | Dashboard en tiempo real, métricas por organizador |
+| **Seguridad** | JWT, roles (ADMIN/CUSTOMER/EMPLOYEE), Anti-Spoofing |
+
+---
+
+## 🏗️ Arquitectura
 
 ```
-┌──────────────────────────────────────────────────────────────────┐
-│                      FRONTEND (Angular)                          │
-│                      http://localhost:3000                       │
-└────────────────────────────┬─────────────────────────────────────┘
-                             │ HTTP + JWT Bearer Token
-                             ▼
-           ┌────────────────────────────────────────────┐
-           │          API GATEWAY (Spring Cloud)         │
-           │              Puerto: 8080                   │
-           │                                              │
-           │  ✅ CORS: allowedOrigins: localhost:3000    │
-           │  ✅ JWT Validation (firma + expiración)    │
-           │  ✅ Header Injection (X-User-Id, X-User-Role)│
-           │  ✅ Anti-Spoofing (remueve headers cliente)│
-           │  ✅ Public Endpoint Filter                  │
-           │  ✅ Route Predicates a microservicios      │
-           └─────────────────┬──────────────────────────┘
-                             │
-      ┌──────────┬───────────┼───────────┬──────────┬─────────┐
-      │          │           │           │          │         │
-┌────▼───┐ ┌────▼───┐ ┌────▼───┐ ┌────▼───┐ ┌────▼───┐ ┌──────▼────┐
-│  Auth  │ │ Users  │ │ Event  │ │ Order  │ │Payment │ │ Analytics │
-│Service │ │Service │ │Service │ │Service │ │Service │ │ Service   │
-│ :8081  │ │ :8082  │ │ :8086  │ │ :8084  │ │ :8085  │ │   :8087   │
-│        │ │        │ │        │ │        │ │        │ │            │
-│ ✅ CORS │ │ ✅ CORS│ │ ✅ CORS│ │ ✅ CORS│ │ ✅ CORS│ │ ✅ CORS   │
-│disabled│ │disabled│ │disabled│ │disabled│ │disabled│ │ disabled   │
-│        │ │        │ │        │ │        │ │        │ │            │
-│ ✅Spring│ │ ✅Spring│ │ ✅Spring│ │ ✅Spring│ │ ✅Spring│ │ ✅Spring │
-│Security│ │Security│ │Security│ │Security│ │Security│ │ Security  │
-└───┬────┘ └───┬────┘ └───┬────┘ └───┬────┘ └───┬────┘ └─────┬──────┘
-    │          │          │          │          │            │
-    │          │          │          │          │            │
-    └──────────┼──────────┼──────────┼──────────┘            │
-               │          │          │                       │
-    ┌──────────▼──────────▼──────────▼───────┐                │
-    │     POSTGRES CENTRAL (:5432)           │                │
-    │  ┌─────────┬─────────┬────┬────────┐  │                │
-    │  │auth_db  │users_db │event_db    │  │                │
-    │  │         │         │order_db    │  │                │
-    │  │         │         │payment_db  │  │                │
-    │  └─────────┴─────────┴────┴────────┘  │                │
-    │  (1 contenedor vs 5 anteriores)       │                │
-    └───────────────────────────────────────┘                │
-                                                           │
-    ┌─────────────────────────────────────┐                  │
-    │        RABBITMQ (:5672)             │                  │
-    │                                     │                  │
-    │  outbox-pattern (async tickets)    │                  │
-    │  DLQ (Dead Letter Queue)            │                  │
-    └─────────────────────────────────────┘                  │
-               │                                             │
-               │         Comunicación Asíncrona:             │
-               │    order-service ──► RabbitMQ ──► event-service
-                │         (Transactional Outbox Pattern)    │
+┌─────────────────────────────────────────────────────────────────────────┐
+│                         FRONTEND (Angular 19)                           │
+│                           localhost:3000                                │
+└────────────────────────────────┬────────────────────────────────────────┘
+                                 │ HTTP + JWT Bearer
+                                 ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                     API GATEWAY (Spring Cloud)                          │
+│                              :8080                                      │
+│  ┌─────────────┐ ┌────────────┐ ┌─────────────┐ ┌─────────────────┐   │
+│  │    CORS     │ │   JWT      │ │   Header    │ │  Anti-Spoofing  │   │
+│  │             │ │ Validation │ │  Injection  │ │  (X-User-Id)   │   │
+│  └─────────────┘ └────────────┘ └─────────────┘ └─────────────────┘   │
+└───────────────────────────────┬───────────────────────────────────────┘
+                                │
+    ┌──────────┬───────┬────────┬────────┬────────┬───────┐
+    │          │       │        │        │        │       │
+ ┌──▼───┐ ┌──▼──┐ ┌─▼───┐ ┌──▼──┐ ┌──▼──┐ ┌──▼──┐ ┌──▼────┐
+ │ Auth │ │Users│ │Event│ │Order│ │Payment│ │Analytics│
+ │  :8081│ │:8082│ │:8086│ │:8084│ │:8085 │ │ :8087 │
+ └──┬───┘ └──┬──┘ └──┬──┘ └──┬──┘ └──┬──┘ └───┬───┘
+    │        │        │        │        │         │
+    └────────┴────────┴────────┴────────┴─────────┘
+                         │
+        ┌────────────────┴────────────────┐
+        │   POSTGRES CENTRAL (1 컨tenedor) │
+        │  auth_db | users_db | event_db   │
+        │  order_db | payment_db           │
+        └─────────────────────────────────┘
+
+        ┌─────────────────────────────────┐
+        │        RABBITMQ                 │
+        │  Outbox Pattern + DLQ           │
+        └─────────────────────────────────┘
+                    │
+         order-service ──► RabbitMQ ──► event-service
+         (Transactional Outbox Pattern)
 ```
 
 ### Microservicios
 
-| Servicio | Puerto | Base de Datos | Responsabilidad |
-|----------|--------|----------------|-----------------|
-| **API Gateway** | 8080 | N/A | Enrutamiento, JWT, CORS, Anti-Spoofing |
-| **auth-service** | 8081 | auth_db (postgres-central:5432) | Autenticación y usuarios |
-| **users-service** | 8082 | users_db (postgres-central:5432) | Perfiles y empleados |
-| **event-service** | 8086 | event_db (postgres-central:5432) | Eventos, tickets + Listener RabbitMQ |
-| **order-service** | 8084 | order_db (postgres-central:5432) | Carritos, órdenes + Outbox Publisher |
-| **payment-service** | 8085 | payment_db (postgres-central:5432) | Pagos con Stripe |
-| **analytics-service** | 8087 | Stateless | Dashboard y estadísticas |
-
-### Infraestructura
-
-| Componente | Puerto | Descripción |
-|------------|--------|-------------|
-| **PostgreSQL Central** | 5432 | 1 contenedor con 5 databases lógicas (ahorro ~600MB RAM) |
-| **RabbitMQ** | 5672/15672 | Message broker para Transactional Outbox Pattern |
-
-### Principios de Arquitectura
-
-1. **Separación de Responsabilidades**: Cada microservicio tiene una responsabilidad única
-2. **Independencia de Datos**: Cada servicio tiene su propia base de datos lógica
-3. **Comunicación Síncrona**: WebClient (Spring WebFlux) para llamadas REST entre servicios
-4. **Comunicación Asíncrona**: RabbitMQ + Transactional Outbox Pattern para eventos de pago
-4. **Autenticación Centralizada**: API Gateway valida JWT e inyecta headers
-5. **CORS Centralizado**: Solo el API Gateway maneja CORS
-6. **Anti-Spoofing**: API Gateway remueve headers X-User-* spoofeados del cliente
-
----
-
-## ✨ Funcionalidades Principales
-
-### 1. Gestión de Eventos
-
-- ✅ Crear, editar y eliminar eventos
-- ✅ Gestión de categorías de eventos
-- ✅ Upload de imágenes de eventos
-- ✅ Capacidad máxima y disponibilidad de passes
-- ✅ Fechas y horarios configurables
-
-### 2. Sistema de Tickets y Passes
-
-- ✅ Generación de passes pre-creados con QR único
-- ✅ Conversión de passes a tickets tras compra
-- ✅ Validación QR para entrada única (single entry)
-- ✅ Control de stock en tiempo real
-
-### 3. Consumiciones
-
-- ✅ CRUD de consumiciones (bebidas, comidas)
-- ✅ Asignación a eventos específicos
-- ✅ Gestión de stock
-- ✅ Registro de consumo desde tickets
-
-### 4. Carrito de Compras
-
-- ✅ Multi-item (eventos + consumiciones)
-- ✅ Expiración automática (10 minutos)
-- ✅ Validación de stock en tiempo real
-- ✅ Checkout hacia Stripe
-
-### 5. Procesamiento de Pagos
-
-- ✅ Integración con Stripe Checkout
-- ✅ Webhooks para confirmación de pagos
-- ✅ Estados: PENDING → APPROVED/REJECTED
-- ✅ Verificación de firma en webhooks
-
-### 6. Transacciones Distribuidas (Outbox Pattern)
-
-- ✅ Transactional Outbox Pattern para consistencia eventual
-- ✅ Comunicación asíncrona order-service → event-service vía RabbitMQ
-- ✅ Retry automático con exponential backoff (2s → 4s → 8s)
-- ✅ Dead Letter Queue (DLQ) para mensajes fallidos
-- ✅ Generación automática de tickets tras pago confirmado
-
-> **Nota**: Resuelve el problema de transacciones distribuidas síncronas (carrito → checkout → pago → tickets)
-
-### 6. Dashboard y Analytics
-
-- ✅ Métricas de eventos, ventas e ingresos
-- ✅ Consolidación de datos de múltiples servicios
-- ✅ Estadísticas en tiempo real
-- ✅ Multi-tenant por organizador
-
-### 7. Gestión de Empleados
-
-- ✅ CRUD de empleados
-- ✅ Asignación a eventos específicos
-- ✅ Validación de tickets QR
-- ✅ Registro de consumos
-
-### 8. Flujos de Usuario
-
-#### Registro y Login
-```
-1. Cliente → Registro con email, DNI, contraseña
-2. Sistema → Envía email de verificación
-3. Cliente → Verifica email → Cuenta activa
-4. Cliente → Login con credenciales → JWT
-```
-
-#### Compra de Tickets
-```
-1. Cliente → Explora eventos
-2. Cliente → Selecciona evento + consumiciones
-3. Cliente → Agrega al carrito
-4. Cliente → Checkout → Crea orden
-5. Cliente → Pago con Stripe
-6. Sistema → Confirma pago → Genera tickets
-7. Cliente → Recibe tickets con QR
-```
-
-#### Validación de Entrada
-```
-1. Empleado → Login con credenciales
-2. Empleado → Ve eventos asignados
-3. Cliente → Presenta ticket QR
-4. Empleado → Escanea QR → Valida
-5. Sistema → Marca ticket como usado
-```
+| Servicio | Puerto | Responsabilidad |
+|----------|--------|-----------------|
+| **API Gateway** | 8080 | Enrutamiento, JWT, CORS |
+| **auth-service** | 8081 | Autenticación, registro |
+| **users-service** | 8082 | Perfiles, empleados |
+| **event-service** | 8086 | Eventos, tickets |
+| **order-service** | 8084 | Carritos, órdenes |
+| **payment-service** | 8085 | Pagos con Stripe |
+| **analytics-service** | 8087 | Dashboard, estadísticas |
 
 ---
 
 ## 🛠️ Stack Tecnológico
 
 ### Backend
-
-| Componente | Tecnología | Versión |
-|------------|------------|---------|
-| **Framework** | Spring Boot | 3.5.6/3.5.7 |
-| **Lenguaje** | Java | 17 |
-| **API Gateway** | Spring Cloud Gateway | 2023.0.0 |
-| **Base de Datos** | PostgreSQL | 15-alpine (1 contenedor con 5 DBs) |
-| **Message Broker** | RabbitMQ | 3-management-alpine |
-| **Autenticación** | JWT (jjwt) | 0.12.5/0.12.6 |
-| **Pasarela de Pago** | Stripe SDK | 26.7.0 |
-| **Cliente HTTP** | Spring WebFlux | 3.5.6 |
-| **Retry** | Spring Retry | 3.x |
-| **Contenedores** | Docker + Docker Compose | Latest |
+| Tecnología | Versión |
+|-------------|---------|
+| Java | 17 |
+| Spring Boot | 3.5.x |
+| Spring Cloud Gateway | 2023.0.0 |
+| PostgreSQL | 15-alpine |
+| RabbitMQ | 3-management |
+| JWT (jjwt) | 0.12.x |
+| Stripe SDK | 26.7.0 |
 
 ### Frontend
+| Tecnología | Versión |
+|------------|---------|
+| Angular | 19.x |
+| TypeScript | 5.7.x |
+| Bootstrap | 5.3.x |
+| RxJS | 7.8.x |
 
-| Componente | Tecnología | Versión |
-|------------|------------|---------|
-| **Framework** | Angular | 19.2.0 |
-| **Lenguaje** | TypeScript | 5.7.2 |
-| **UI Framework** | Bootstrap | 5.3.8 |
-| **QR Scanner** | @zxing/ngx-scanner | 20.0.0 |
-| **Alertas** | SweetAlert2 | 11.26.3 |
-| **Estado** | RxJS + BehaviorSubject | 7.8.0 |
-
-### Herramientas de Desarrollo
-
-| Herramienta | Propósito |
+### Infraestructura
+| Tecnología | Propósito |
 |-------------|-----------|
-| **Maven** | Build y gestión de dependencias Java |
-| **Docker** | Containerización de servicios |
-| **Angular CLI** | Generación y build de frontend |
-| **Postman/curl** | Testing de APIs |
+| Docker | Contenedores |
+| Docker Compose | Orquestación |
+| Maven | Build Java |
 
 ---
 
-## 📁 Estructura del Proyecto
+## 🚀 Primeros Pasos
 
-```
-ps-packedgo-main/
-├── packedgo/
-│   ├── back/                          # Backend (Microservicios Spring Boot)
-│   │   ├── api-gateway/               # API Gateway (Spring Cloud)
-│   │   ├── auth-service/              # Autenticación
-│   │   ├── users-service/             # Perfiles y empleados
-│   │   ├── event-service/             # Eventos y tickets
-│   │   ├── order-service/             # Carritos y órdenes
-│   │   ├── payment-service/           # Pagos con Stripe
-│   │   ├── analytics-service/        # Dashboard y estadísticas
-│   │   ├── docker-compose.yml         # Orquestación Docker
-│   │   ├── .env.example               # Variables de entorno
-│   │   ├── README.md                  # Documentación backend
-│   │   └── TECHNICAL_DOCUMENTATION.md # Documentación técnica completa
-│   │
-│   └── front-angular/                 # Frontend (Angular 19)
-│       ├── src/
-│       │   ├── app/
-│       │   │   ├── core/              # Servicios, guards, interceptors
-│       │   │   ├── features/          # Componentes por módulo
-│       │   │   │   ├── admin/         # Dashboard, eventos, empleados
-│       │   │   │   ├── auth/           # Login, register, verificación
-│       │   │   │   ├── customer/       # Checkout, orders, perfil
-│       │   │   │   ├── employee/      # Validación QR
-│       │   │   │   ├── events-explore/ # Exploración pública
-│       │   │   │   ├── landing/        # Página de inicio
-│       │   │   │   └── terms/          # Términos y privacidad
-│       │   │   ├── shared/            # Modelos, pipes, componentes
-│       │   │   ├── app.component.ts
-│       │   │   ├── app.config.ts
-│       │   │   └── app.routes.ts
-│       │   ├── environments/          # Configuraciones de entorno
-│       │   ├── assets/                 # Imágenes y recursos
-│       │   └── styles.css             # Estilos globales
-│       ├── proxy.conf.json            # Proxy para API Gateway
-│       ├── package.json               # Dependencias npm
-│       ├── angular.json               # Configuración Angular
-│       └── TECHNICAL_DOCUMENTATION.md # Documentación técnica
-│
-└── README.md                          # Este archivo
-```
-
----
-
-## 🚀 Instalación y Configuración
-
-### Requisitos Previos
+### Requisitos
 
 | Requisito | Versión Mínima |
 |-----------|----------------|
-| **Java** | 17+ |
-| **Maven** | 3.9+ |
-| **Docker Desktop** | Latest |
-| **PostgreSQL** | 15 (incluido en Docker) |
-| **Node.js** | 18+ |
-| **npm** | 9+ |
+| Java | 17+ |
+| Maven | 3.9+ |
+| Docker Desktop | Latest |
+| Node.js | 18+ |
+| npm | 9+ |
 
-### Paso 1: Clonar el Repositorio
-
-```bash
-git clone <repositorio-url>
-cd ps-packedgo-main/packedgo
-```
-
-### Paso 2: Configurar Variables de Entorno
-
-Cada servicio requiere un archivo `.env`. Copia los ejemplos:
+### Instalación Rápida
 
 ```bash
-# Backend
+# 1. Clonar el repositorio
+git clone https://github.com/tu-usuario/packed-go.git
+cd packed-go/app
+
+# 2. Configurar variables de entorno
 cd back
 cp auth-service/.env.example auth-service/.env
-cp users-service/.env.example users-service/.env
-cp event-service/.env.example event-service/.env
-cp order-service/.env.example order-service/.env
-cp payment-service/.env.example payment-service/.env
-cp analytics-service/.env.example analytics-service/.env
-```
+# Editar .env con tus credenciales
 
-Edita cada archivo `.env` con tus credenciales:
-
-```env
-# Variables críticas
-JWT_SECRET=your-super-secret-key-change-in-production
-STRIPE_API_KEY=sk_test_your_stripe_key
-STRIPE_WEBHOOK_SECRET=whsec_your_webhook_secret
-FRONTEND_URL=http://localhost:3000
-```
-
-### Paso 3: Iniciar la Infraestructura
-
-```bash
-cd back
+# 3. Iniciar infraestructura (PostgreSQL + RabbitMQ)
 docker-compose up -d postgres-central rabbitmq
-```
 
-### Paso 4: Compilar los Microservicios
+# 4. Compilar todos los servicios
+for dir in auth-service users-service event-service order-service payment-service analytics-service api-gateway; do
+  cd $dir && mvn clean package -DskipTests && cd ..
+done
 
-```bash
-# Compilar cada servicio
-cd auth-service && mvn clean package -DskipTests && cd ..
-cd users-service && mvn clean package -DskipTests && cd ..
-cd event-service && mvn clean package -DskipTests && cd ..
-cd order-service && mvn clean package -DskipTests && cd ..
-cd payment-service && mvn clean package -DskipTests && cd ..
-cd analytics-service && mvn clean package -DskipTests && cd ..
-cd api-gateway && mvn clean package -DskipTests && cd ..
-```
-
-### Paso 5: Iniciar los Servicios
-
-```bash
-# Iniciar todos los servicios
+# 5. Iniciar todos los servicios
 docker-compose up -d
 
-# Verificar que están corriendo
-docker-compose ps
-```
-
-### Paso 6: Instalar y Ejecutar el Frontend
-
-```bash
-cd front-angular
-
-# Instalar dependencias
+# 6. Instalar y ejecutar frontend
+cd ../front-angular
 npm install
-
-# Iniciar servidor de desarrollo
 npm start
-# o
-ng serve --proxy-config proxy.conf.json
 ```
 
-El frontend estará disponible en: **http://localhost:3000**
-
-### Verificación de Instalación
+### Verificar que todo funciona
 
 ```bash
-# Test de endpoint público
+# Health checks
+curl http://localhost:8080/actuator/health   # API Gateway
+curl http://localhost:8081/actuator/health  # Auth Service
+curl http://localhost:8082/actuator/health  # Users Service
+curl http://localhost:8086/actuator/health  # Event Service
+curl http://localhost:8084/actuator/health  # Order Service
+curl http://localhost:8085/actuator/health  # Payment Service
+curl http://localhost:8087/actuator/health  # Analytics Service
+
+# Test endpoint público
 curl http://localhost:8080/api/events
-
-# Login de admin
-curl -X POST http://localhost:8080/api/auth/admin/login \
-  -H "Content-Type: application/json" \
-  -d '{"email": "admin@test.com", "password": "Admin123!"}'
-
-# Health check de todos los servicios
-curl http://localhost:8080/actuator/health  # API Gateway
-curl http://localhost:8081/actuator/health  # auth-service
-curl http://localhost:8082/actuator/health  # users-service
-curl http://localhost:8086/actuator/health  # event-service
-curl http://localhost:8084/actuator/health  # order-service
-curl http://localhost:8085/actuator/health  # payment-service
-curl http://localhost:8087/actuator/health  # analytics-service
 ```
 
 ---
 
-## 📖 Guía de Uso
+## ⚙️ Configuración
 
-### Accesos de Prueba
+### Variables de Entorno Requeridas
 
-| Tipo | Email/DNI | Contraseña | Rol |
-|------|-----------|------------|-----|
-| Admin | admin@test.com | Admin123! | ADMIN |
-| Cliente | 12345678 | Customer123! | CUSTOMER |
-| Empleado | employee@test.com | Employee123! | EMPLOYEE |
+```env
+# JWT (generar una clave segura para producción)
+JWT_SECRET=your-super-secret-key-change-in-production
 
-### Endpoints Principales
+# Stripe (obtener de https://dashboard.stripe.com/test/apikeys)
+STRIPE_API_KEY=sk_test_your_stripe_key
+STRIPE_WEBHOOK_SECRET=whsec_your_webhook_secret
 
-#### Autenticación (Públicos)
+# Frontend
+FRONTEND_URL=http://localhost:3000
+```
+
+### Puertos de Servicios
+
+| Servicio | Puerto | URL |
+|----------|--------|-----|
+| Frontend | 3000 | http://localhost:3000 |
+| API Gateway | 8080 | http://localhost:8080 |
+| RabbitMQ UI | 15672 | http://localhost:15672 |
+| PostgreSQL | 5432 | localhost:5432 |
+
+---
+
+## 📡 API Endpoints
+
+### Autenticación (Públicos)
 
 ```bash
-# Login de clientes
+# Login cliente
 POST /api/auth/customer/login
 Body: {"document": "12345678", "password": "Customer123!"}
 
-# Login de administradores
+# Login administrador
 POST /api/auth/admin/login
 Body: {"email": "admin@test.com", "password": "Admin123!"}
 
-# Registro de clientes
+# Registro cliente
 POST /api/auth/customer/register
 Body: {"username": "john", "email": "john@test.com", "document": "87654321", "password": "Pass123!", "firstName": "John", "lastName": "Doe"}
 ```
 
-#### Eventos (Mixto)
+### Eventos (Públicos)
 
 ```bash
-# Listar eventos (público)
+# Listar eventos
 GET /api/events
 
-# Detalle de evento (público)
+# Detalle evento
 GET /api/events/{id}
 
 # Crear evento (ADMIN)
 POST /api/events
 Authorization: Bearer {token}
-Body: {"name": "Concierto", "description": "...", "location": "...", "startDate": "2025-12-01", "endDate": "2025-12-02", "maxCapacity": 1000, "price": 50.00, "eventCategoryId": 1}
 ```
 
-#### Carrito y Órdenes
+### Carrito y Órdenes
 
 ```bash
-# Agregar al carrito (autenticado)
+# Agregar al carrito
 POST /api/cart/add
 Authorization: Bearer {token}
 Body: {"eventId": 1, "quantity": 2}
-
-# Ver carrito
-GET /api/cart
-Authorization: Bearer {token}
 
 # Checkout
 POST /api/orders/checkout
 Authorization: Bearer {token}
 ```
 
-#### Pagos
+### Pagos
 
 ```bash
-# Crear sesión de pago Stripe
+# Crear sesión Stripe
 POST /api/payments/create-checkout-stripe
 Authorization: Bearer {token}
 Body: {"orderId": 1}
-
-# Webhook de Stripe (Stripe → Backend)
-POST /api/webhooks/stripe
 ```
 
-#### Dashboard (ADMIN)
+### Dashboard (ADMIN)
 
 ```bash
-# Dashboard del organizador
+# Métricas del organizador
 GET /api/dashboard
 Authorization: Bearer {token}
 ```
 
-### Comandos Docker Útiles
-
-```bash
-# Ver logs de un servicio
-docker-compose logs -f auth-service
-
-# Reiniciar un servicio
-docker-compose restart analytics-service
-
-# Reconstruir sin caché
-docker-compose build --no-cache analytics-service
-docker-compose up -d analytics-service
-
-# Detener todo
-docker-compose down
-
-# Limpiar todo (⚠️ elimina datos)
-docker-compose down -v
-```
-
 ---
 
-## 🤝 Guía de Contribución
+## 🤝 Contribución
 
-### Fork y Clonado
+¡Las contribuciones son bienvenidas! Por favor lee nuestra guía de contribución.
 
-1. Haz fork del repositorio
-2. Clona tu fork:
-   ```bash
-   git clone https://github.com/TU_USUARIO/ps-packedgo.git
-   cd ps-packedgo
-   ```
+### Enviar un Pull Request
 
-### Crear Rama de Feature
-
-```bash
-# Crear rama desde develop/main
-git checkout -b feature/nueva-funcionalidad
-# o
-git checkout -b fix/corregir-bug
-```
+1. Haz fork del proyecto
+2. Crea tu rama de feature (`git checkout -b feature/amazing-feature`)
+3. Haz commit de tus cambios (`git commit -m 'feat: add amazing feature'`)
+4. Push a la rama (`git push origin feature/amazing-feature`)
+5. Abre un Pull Request
 
 ### Estándares de Código
 
-#### Backend (Java/Spring)
-
-- ✅ Usar Lombok para reducir boilerplate
-- ✅ Anotaciones `@Slf4j` para logging
-- ✅ DTOs para transferencia de datos
-- ✅ Services para lógica de negocio
-- ✅ Repositories para acceso a datos
-- ✅ Validaciones con Bean Validation
-
-#### Frontend (Angular)
-
-- ✅ Componentes standalone (Angular 19+)
-- ✅ Lazy loading para todas las rutas
-- ✅ TypeScript strict mode
-- ✅ Services para lógica de negocio
-- ✅ BehaviorSubject para estado
-- ✅ Pipes para transformaciones
-
-### Commits Convencionales
-
-Usar conventional commits:
-
-```bash
-feat: agregar validación de tickets QR
-fix: corregir error de CORS duplicado
-docs: actualizar documentación de API
-refactor: reorganizar estructura de servicios
-test: agregar tests unitarios para auth-service
-```
-
-### Pull Request
-
-1. Push de tu rama:
-   ```bash
-   git push origin feature/nueva-funcionalidad
-   ```
-
-2. Crear PR con:
-   - Título descriptivo
-   - Descripción del cambio
-   - Screenshots si es UI
-   - Links a issues relacionados
-
-3. Verificar que los tests pasen
-
-### Testing
-
-```bash
-# Backend - Tests unitarios
-cd auth-service
-mvn test
-
-# Backend - Con cobertura
-mvn test jacoco:report
-
-# Frontend - Tests unitarios
-cd front-angular
-ng test
-
-# Frontend - Con cobertura
-ng test --code-coverage
-```
-
----
-
-## ⚠️ Notas Importantes de Configuración
-
-### CORS
-
-⚠️ **CRÍTICO**: CORS está configurado ÚNICAMENTE en el API Gateway.
-
-| Componente | CORS | Acción |
-|------------|------|--------|
-| **API Gateway** | ✅ | `allowedOrigins: http://localhost:3000` |
-| auth-service | ❌ | `.cors(cors -> cors.disable())` |
-| users-service | ❌ | `.cors(cors -> cors.disable())` |
-| event-service | ❌ | `.cors(cors -> cors.disable())` |
-| order-service | ❌ | `.cors(cors -> cors.disable())` |
-| payment-service | ❌ | `.cors(cors -> cors.disable())` |
-| analytics-service | ❌ | `.cors(cors -> cors.disable())` |
-
-**NO agregar**:
-- ❌ Archivos `CorsConfig.java` en microservicios
-- ❌ Anotaciones `@CrossOrigin` en controllers
-- ❌ Configuración CORS en `SecurityConfig` de microservicios
-
-### Seguridad
-
-El sistema implementa un modelo de seguridad en dos capas:
-
-```
-Capa 1: API Gateway
-  - Valida JWT (firma + expiración)
-  - Extrae userId y role
-  - Inyecta headers: X-User-Id, X-User-Role
-  - REMUEVE headers spoofeados del cliente (Anti-Spoofing)
-
-Capa 2: Microservicios
-  - Spring Security en TODOS los servicios
-  - Leen headers inyectados
-  - Aplican reglas de negocio
-  - No re-validan JWT (confían en Gateway)
-```
-
-### Transactional Outbox Pattern
-
-El sistema usa el patrón Outbox para resolver transacciones distribuidas:
-
-```
-Orden Pagada → OutboxEvent (BD order-service) 
-             → OutboxPublisher (RabbitMQ) 
-             → event-service listener 
-             → Generación de tickets
-```
-
-**Configuración**:
-- Exchange: `packedgo.exchange`
-- Queue: `packedgo.order.paid`
-- Retry: 3 intentos con exponential backoff (2s → 4s → 8s)
-- DLQ: `packedgo.ticket.dlq` para mensajes fallidos
-
-**Dependencias requeridas**:
-- `spring-boot-starter-amqp`
-- `spring-retry` + `@EnableRetry` en aplicación principal
-
----
-
-## 📚 Recursos Adicionales
-
-### Documentación Técnica
-
-- **[TECHNICAL_DOCUMENTATION.md](packedgo/back/TECHNICAL_DOCUMENTATION.md)** - Documentación completa del backend
-- **[TECHNICAL_DOCUMENTATION.md](packedgo/front-angular/TECHNICAL_DOCUMENTATION.md)** - Documentación del frontend
-- **[API Gateway README](packedgo/back/api-gateway/API_GATEWAY_README.md)**
-- **[Auth Service README](packedgo/back/auth-service/AUTH_SERVICE_README.md)**
-- **[Users Service README](packedgo/back/users-service/USERS_SERVICE_README.md)**
-- **[Event Service README](packedgo/back/event-service/EVENT_SERVICE_README.md)**
-- **[Order Service README](packedgo/back/order-service/ORDER_SERVICE_README.md)**
-- **[Payment Service README](packedgo/back/payment-service/PAYMENT_SERVICE_README.md)**
-- **[Analytics Service README](packedgo/back/analytics-service/ANALYTICS_SERVICE_README.md)**
-
-### Enlaces Externos
-
-- [Spring Cloud Gateway](https://spring.io/projects/spring-cloud-gateway)
-- [JWT.io](https://jwt.io/)
-- [Stripe API](https://stripe.com/docs/api)
-- [Angular Documentation](https://angular.io/docs)
-- [PostgreSQL Docs](https://www.postgresql.org/docs/)
-- [Docker Compose](https://docs.docker.com/compose/)
-
----
-
-## 🔧 Troubleshooting
-
-### Error: Duplicate CORS headers
-
-**Síntoma**: `Access-Control-Allow-Origin: http://localhost:3000, http://localhost:3000`
-
-**Solución**: 
-- CORS debe estar SOLO en API Gateway
-- Deshabilitar CORS en TODOS los microservicios
-
-### Error: 403 Forbidden
-
-**Causas posibles**:
-1. Spring Security bloqueando requests
-2. Anotación `@CrossOrigin` con puerto incorrecto
-3. JWT expirado o inválido
-
-### Error: Cannot connect to database
-
-```bash
-# Verificar que PostgreSQL Central está corriendo
-docker-compose ps postgres-central
-
-# Ver logs de PostgreSQL
-docker-compose logs postgres-central
-
-# Reiniciar PostgreSQL
-docker-compose restart postgres-central
-```
-
----
-
-## 📞 Soporte
-
-**Desarrollador**: David Delfino  
-**Email**: daviddelfino97@hotmail.com  
-**Proyecto**: PackedGo - Sistema de Gestión de Eventos  
-**Última Actualización**: Abril 2026
+- **Backend**: Lombok, DTOs, Services, Repositories, Bean Validation
+- **Frontend**: Componentes standalone (Angular 19), TypeScript strict, Lazy loading
 
 ---
 
 ## 📄 Licencia
 
-Propiedad de PackedGo. Todos los derechos reservados.
+Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) para más detalles.
 
 ---
 
-<div align="center">
+## 📄 Licencia
 
-⭐️ Si este proyecto te fue útil, ¡considera darle una estrella!
-
-</div>
+Este proyecto es **Open Source**. Puedes usarlo, modificarlo y distribuirlo libremente.
