@@ -311,7 +311,7 @@ Authorization: Bearer {token}
 - **Backend**: Lombok, DTOs, Services, Repositories, Bean Validation
 - **Frontend**: Componentes standalone (Angular 19), TypeScript strict, Lazy loading
 
----
+
 
 ## 📄 Licencia
 
