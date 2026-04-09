@@ -315,10 +315,4 @@ Authorization: Bearer {token}
 
 ## 📄 Licencia
 
-Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) para más detalles.
-
----
-
-## 📄 Licencia
-
-Este proyecto es **Open Source**. Puedes usarlo, modificarlo y distribuirlo libremente.
+Este proyecto es **Open Source / Libre**. Puedes usarlo, modificarlo y distribuirlo libremente bajo los términos de la [Licencia MIT](LICENSE).
