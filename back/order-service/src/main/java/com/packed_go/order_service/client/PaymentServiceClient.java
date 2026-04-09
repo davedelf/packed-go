@@ -53,12 +53,14 @@ public class PaymentServiceClient {
 
     /**
      * Crea un pago con Stripe en payment-service (RECOMENDADO)
+     * Usa el endpoint MOCK para desarrollo/testing
      */
     public PaymentServiceResponse createPaymentStripe(PaymentServiceRequest request) {
         // Fix: paymentServiceBaseUrl already includes /api from .env
-        String url = paymentServiceBaseUrl + "/payments/create-checkout-stripe";
+        // Usar endpoint MOCK para desarrollo
+        String url = paymentServiceBaseUrl + "/payments/mock/create-checkout-stripe";
         
-        log.info("🔷 Calling payment-service Stripe: POST {} with orderId: {}", url, request.getOrderId());
+        log.info("🔷 Calling payment-service MOCK: POST {} with orderId: {}", url, request.getOrderId());
         
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);

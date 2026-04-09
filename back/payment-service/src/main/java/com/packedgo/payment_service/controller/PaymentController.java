@@ -101,7 +101,7 @@ public class PaymentController {
                 "provider", "Stripe"
         ));
     }
-    
+
     /**
      * 🔒 GET /payments/stats - Obtener estadísticas de pagos del admin autenticado
      */
@@ -126,5 +126,35 @@ public class PaymentController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", e.getMessage()));
         }
+    }
+
+    /**
+     * 🔓 MOCK - Endpoint para simular pago sin Stripe (desarrollo/testing)
+     * Simula que el pago fue exitoso y retorna una URL de checkout falsa
+     */
+    @PostMapping("/mock/create-checkout-stripe")
+    public ResponseEntity<PaymentResponse> createMockPayment(
+            @Valid @RequestBody PaymentRequest request) {
+        
+        log.info("🔴 MOCK: Creating mock payment for orderId: {} (amount: {})", 
+                request.getOrderId(), request.getAmount());
+        
+        // Simular pago exitoso - retornar respuesta mock
+        PaymentResponse response = PaymentResponse.builder()
+                .id(System.currentTimeMillis())
+                .orderId(request.getOrderId())
+                .amount(request.getAmount())
+                .status("PENDING")
+                .checkoutUrl(request.getSuccessUrl() + "?session_id=mock_session_" + System.currentTimeMillis())
+                .initPoint(request.getSuccessUrl() + "?session_id=mock_session_" + System.currentTimeMillis())
+                .preferenceId("mock_preference_" + System.currentTimeMillis())
+                .sessionId("mock_session_" + System.currentTimeMillis())
+                .paymentProvider("MOCK")
+                .createdAt(java.time.LocalDateTime.now().toString())
+                .build();
+        
+        log.info("🔴 MOCK: Mock payment created - sessionId: {}", response.getSessionId());
+        
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 }

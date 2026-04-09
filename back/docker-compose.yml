@@ -175,6 +175,7 @@ services:
       - RABBITMQ_PASSWORD=packedgo123
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-central:5432/order_db
       - SPRING_DATASOURCE_USERNAME=packedgo_admin
+      - PAYMENT_SERVICE_URL=http://payment-service:8085/api
       - SPRING_DATASOURCE_PASSWORD=packedgo_admin_pass
     depends_on:
       postgres-central:
@@ -213,18 +214,20 @@ services:
       context: ./payment-service
       dockerfile: Dockerfile
     ports:
-      - "8085:8085"  # Fixed: service runs on 8085 inside container
+      - "8085:8085"
       - "5009:5009"  # Debug port for payment-service
     env_file:
       - ./payment-service/.env
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5009
+      - SERVER_PORT=8085  # Forzar puerto correcto
       - DB_URL=jdbc:postgresql://postgres-central:5432/payment_db
       - DB_USERNAME=packedgo_admin
       - DB_PASSWORD=packedgo_admin_pass
       - JWT_SECRET=KuBhDtfFr/N7GPbvfgxbd7TIiG7S+WrsyrV3vj5wjOj8B2arS8bZnlp7N3RDp5Ig
       - ORDER_SERVICE_URL=http://order-service:8084
+      - STRIPE_SECRET_KEY=sk_test_4eC39HqLyjWDarjtT1zdp7dc
     depends_on:
       postgres-central:
         condition: service_healthy
